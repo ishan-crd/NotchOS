@@ -50,6 +50,7 @@
 		A10000012D4C000000000004 /* MediaPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000002 /* MediaPlayerView.swift */; };
 		A10000012D4C000000000006 /* WaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000005 /* WaveformView.swift */; };
 		A10000012D4C000000000008 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000007 /* CalendarView.swift */; };
+		A10000012D4C00000000000A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000009 /* OnboardingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -90,6 +91,7 @@
 		A10000012D4C000000000002 /* MediaPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerView.swift; sourceTree = "<group>"; };
 		A10000012D4C000000000005 /* WaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformView.swift; sourceTree = "<group>"; };
 		A10000012D4C000000000007 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
+		A10000012D4C000000000009 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -168,6 +170,7 @@
 				A10000012D4C000000000002 /* MediaPlayerView.swift */,
 				A10000012D4C000000000005 /* WaveformView.swift */,
 				A10000012D4C000000000007 /* CalendarView.swift */,
+				A10000012D4C000000000009 /* OnboardingView.swift */,
 			);
 			path = NotchDrop;
 			sourceTree = "<group>";
@@ -303,6 +306,7 @@
 				A10000012D4C000000000004 /* MediaPlayerView.swift in Sources */,
 				A10000012D4C000000000006 /* WaveformView.swift in Sources */,
 				A10000012D4C000000000008 /* CalendarView.swift in Sources */,
+				A10000012D4C00000000000A /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

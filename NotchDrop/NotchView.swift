@@ -53,12 +53,14 @@ struct NotchView: View {
                 .opacity(vm.notchVisible || nowPlaying.hasNowPlaying ? 1 : 0.3)
             Group {
                 if vm.status == .opened {
-                    VStack(spacing: vm.spacing) {
-                        NotchHeaderView(vm: vm)
+                    VStack(spacing: vm.contentType == .onboarding ? 0 : vm.spacing) {
+                        if vm.contentType != .onboarding {
+                            NotchHeaderView(vm: vm)
+                        }
                         NotchContentView(vm: vm)
                             .frame(maxHeight: .infinity)
                     }
-                    .padding(vm.spacing)
+                    .padding(vm.contentType == .onboarding ? 0 : vm.spacing)
                     .frame(width: vm.notchOpenedSize.width, height: vm.notchOpenedSize.height)
                     .zIndex(1)
                 }

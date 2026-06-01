@@ -27,8 +27,9 @@ class NotchViewModel: NSObject, ObservableObject {
     let notchOpenedHeight: CGFloat = 160
     let fixedContentWidth: CGFloat = 600
     var notchOpenedSize: CGSize {
-        let width = contentType == .normal ? max(contentWidth + 32, 300) : fixedContentWidth
-        return .init(width: width, height: notchOpenedHeight)
+        let width = contentType == .normal ? max(contentWidth + 32, 300) : (contentType == .onboarding ? 380 : fixedContentWidth)
+        let height: CGFloat = contentType == .onboarding ? 480 : notchOpenedHeight
+        return .init(width: width, height: height)
     }
     let dropDetectorRange: CGFloat = 32
 
@@ -50,6 +51,7 @@ class NotchViewModel: NSObject, ObservableObject {
         case menu
         case settings
         case tray
+        case onboarding
     }
 
     var notchOpenedRect: CGRect {
@@ -87,16 +89,24 @@ class NotchViewModel: NSObject, ObservableObject {
     @PublishedPersist(key: "hapticFeedback", defaultValue: true)
     var hapticFeedback: Bool
 
+    @PublishedPersist(key: "onboardingCompleted", defaultValue: false)
+    var onboardingCompleted: Bool
+
     let hapticSender = PassthroughSubject<Void, Never>()
 
     func notchOpen(_ reason: OpenReason) {
         openReason = reason
         status = .opened
-        contentType = reason == .drag ? .tray : .normal
+        if !onboardingCompleted && reason == .boot {
+            contentType = .onboarding
+        } else {
+            contentType = reason == .drag ? .tray : .normal
+        }
         NSApp.activate(ignoringOtherApps: true)
     }
 
     func notchClose() {
+        guard contentType != .onboarding else { return }
         openReason = .unknown
         status = .closed
         contentType = .normal
