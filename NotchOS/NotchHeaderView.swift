@@ -32,8 +32,9 @@ struct NotchHeaderView: View {
                 tabPill(icon: "tray.fill", label: "Tray", tab: .tray, badge: tvm.isEmpty ? 0 : tvm.items.count)
             }
         case .settings:
-            Text("Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown") (Build: \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"))")
+            Text("Settings")
                 .font(.system(.headline, design: .rounded))
+                .foregroundStyle(.white.opacity(0.9))
         default:
             EmptyView()
         }
