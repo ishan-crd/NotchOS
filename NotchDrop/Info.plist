@@ -4,5 +4,7 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>NotchDrop needs access to control media playback and display now playing information.</string>
 </dict>
 </plist>
