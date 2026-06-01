@@ -5,6 +5,7 @@ class CalendarManager: ObservableObject {
     static let shared = CalendarManager()
 
     @Published var nextEvent: EKEvent?
+    @Published var todayEvents: [EKEvent] = []
     @Published var accessGranted: Bool = false
 
     private let store = EKEventStore()
@@ -15,7 +16,7 @@ class CalendarManager: ObservableObject {
     func start() {
         requestAccess()
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            self?.fetchNextEvent()
+            self?.fetchEvents()
         }
     }
 
@@ -24,20 +25,20 @@ class CalendarManager: ObservableObject {
             store.requestFullAccessToEvents { [weak self] granted, _ in
                 DispatchQueue.main.async {
                     self?.accessGranted = granted
-                    if granted { self?.fetchNextEvent() }
+                    if granted { self?.fetchEvents() }
                 }
             }
         } else {
             store.requestAccess(to: .event) { [weak self] granted, _ in
                 DispatchQueue.main.async {
                     self?.accessGranted = granted
-                    if granted { self?.fetchNextEvent() }
+                    if granted { self?.fetchEvents() }
                 }
             }
         }
     }
 
-    func fetchNextEvent() {
+    func fetchEvents() {
         guard accessGranted else { return }
         let now = Date()
         let endOfDay = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: now)!
@@ -45,6 +46,7 @@ class CalendarManager: ObservableObject {
         let events = store.events(matching: predicate).sorted { $0.startDate < $1.startDate }
         DispatchQueue.main.async {
             self.nextEvent = events.first
+            self.todayEvents = Array(events.prefix(3))
         }
     }
 }
@@ -60,9 +62,8 @@ struct CalendarView: View {
         today.formatted(.dateTime.month(.abbreviated))
     }
 
-    private var dateRange: [Date] {
-        let range = vm.dashboardLayout == .focus ? (-3...3) : (-3...3)
-        return range.compactMap { offset in
+    private var focusDateRange: [Date] {
+        (-3...3).compactMap { offset in
             calendar.date(byAdding: .day, value: offset, to: today)
         }
     }
@@ -78,17 +79,15 @@ struct CalendarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - Focus layout (full-width card)
+    // MARK: - Focus layout (full-width carousel card)
 
     var focusBody: some View {
         VStack(spacing: 0) {
-            // Month + Year header
             HStack {
                 Text(today.formatted(.dateTime.month(.wide).year()))
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                 Spacer()
-                // Today's full date
                 Text(today.formatted(.dateTime.weekday(.wide)))
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(.white.opacity(0.4))
@@ -98,23 +97,18 @@ struct CalendarView: View {
 
             Spacer(minLength: 10)
 
-            // Wide date strip
             HStack(spacing: 0) {
-                ForEach(dateRange, id: \.self) { date in
+                ForEach(focusDateRange, id: \.self) { date in
                     let isToday = calendar.isDateInToday(date)
                     VStack(spacing: 4) {
                         Text(date.formatted(.dateTime.weekday(.abbreviated)).uppercased())
                             .font(.system(size: 9, weight: .semibold))
                             .foregroundStyle(isToday ? .white : .white.opacity(0.3))
-
                         Text(date.formatted(.dateTime.day()))
                             .font(.system(size: 18, weight: isToday ? .bold : .regular, design: .rounded))
                             .foregroundStyle(isToday ? .white : .white.opacity(0.35))
                             .frame(width: 32, height: 32)
-                            .background(
-                                Circle()
-                                    .fill(isToday ? .blue : .clear)
-                            )
+                            .background(Circle().fill(isToday ? .blue : .clear))
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -123,7 +117,6 @@ struct CalendarView: View {
 
             Spacer(minLength: 10)
 
-            // Next event bar
             HStack(spacing: 8) {
                 if let event = calendarManager.nextEvent {
                     RoundedRectangle(cornerRadius: 2)
@@ -153,57 +146,76 @@ struct CalendarView: View {
         }
     }
 
-    // MARK: - Compact layout (split/grid sidebar)
+    // MARK: - Compact layout (split/grid — date card + event list)
 
     var compactBody: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Text(monthString)
-                .font(.system(size: 30, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
+        HStack(spacing: 0) {
+            // Left: day block
+            VStack(spacing: 2) {
+                Text(today.formatted(.dateTime.weekday(.abbreviated)).uppercased())
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(.red)
+                Text(today.formatted(.dateTime.day()))
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                Text(monthString)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.4))
+            }
+            .frame(width: 56)
+            .padding(.trailing, 8)
 
-            VStack(spacing: 10) {
-                HStack(spacing: 4) {
-                    ForEach(dateRange, id: \.self) { date in
-                        let isToday = calendar.isDateInToday(date)
-                        VStack(spacing: 1) {
-                            if isToday {
-                                Text("today")
-                                    .font(.system(size: 7, weight: .bold))
-                                    .foregroundStyle(.red)
-                            } else {
-                                Text(date.formatted(.dateTime.weekday(.abbreviated)).uppercased())
-                                    .font(.system(size: 7, weight: .medium))
-                                    .foregroundStyle(.white.opacity(0.3))
-                            }
-                            Text(date.formatted(.dateTime.day()))
-                                .font(.system(size: isToday ? 22 : 13, weight: isToday ? .bold : .regular, design: .rounded))
-                                .foregroundStyle(isToday ? .blue : .white.opacity(0.4))
-                        }
-                        .frame(width: isToday ? 34 : 26)
-                    }
-                }
+            // Divider
+            Rectangle()
+                .fill(.white.opacity(0.08))
+                .frame(width: 1)
+                .padding(.vertical, 8)
 
-                HStack(spacing: 5) {
-                    if let event = calendarManager.nextEvent {
-                        Circle()
-                            .fill(Color(cgColor: event.calendar.cgColor))
-                            .frame(width: 6, height: 6)
-                        Text(event.title)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.6))
-                            .lineLimit(1)
-                    } else {
-                        Image(systemName: "calendar.badge.clock")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.white.opacity(0.3))
-                        Text("Nothing for today")
+            // Right: today's events
+            VStack(alignment: .leading, spacing: 0) {
+                Text("TODAY")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.3))
+                    .tracking(0.5)
+                    .padding(.bottom, 6)
+
+                if calendarManager.todayEvents.isEmpty {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Text("No events")
                             .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.3))
+                            .foregroundStyle(.white.opacity(0.2))
+                        Spacer()
                     }
+                    Spacer()
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(calendarManager.todayEvents.prefix(2), id: \.eventIdentifier) { event in
+                            HStack(spacing: 8) {
+                                Text(event.startDate.formatted(.dateTime.hour().minute()))
+                                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                    .foregroundStyle(.white.opacity(0.4))
+                                    .frame(width: 40, alignment: .trailing)
+
+                                RoundedRectangle(cornerRadius: 1.5)
+                                    .fill(Color(cgColor: event.calendar.cgColor))
+                                    .frame(width: 3, height: 18)
+
+                                Text(event.title)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(.white.opacity(0.8))
+                                    .lineLimit(1)
+                            }
+                        }
+                    }
+                    Spacer(minLength: 0)
                 }
             }
+            .padding(.leading, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
     }
 }

@@ -62,17 +62,23 @@ struct NotchContentView: View {
     // MARK: - Layout Views
 
     var splitLayout: some View {
-        HStack(spacing: vm.spacing) {
+        HStack(spacing: 0) {
             MediaPlayerView(vm: vm)
                 .frame(width: 240)
+            Divider().opacity(0.08).padding(.vertical, 8)
             CalendarView(vm: vm)
+                .frame(width: 220)
+            Divider().opacity(0.08).padding(.vertical, 8)
+            QuickNoteView(vm: vm)
+                .frame(width: 200)
         }
         .fixedSize(horizontal: true, vertical: false)
     }
 
     var gridLayout: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 0) {
             MediaPlayerView(vm: vm)
+            Divider().opacity(0.08).padding(.vertical, 8)
             CalendarView(vm: vm)
         }
     }
@@ -132,8 +138,9 @@ struct NotchContentView: View {
         switch layout {
         case .split:
             HStack(spacing: 3) {
-                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.2)).frame(width: 28, height: 28)
-                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.15)).frame(width: 28, height: 28)
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.2)).frame(width: 20, height: 28)
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.15)).frame(width: 18, height: 28)
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.1)).frame(width: 16, height: 28)
             }
         case .grid:
             HStack(spacing: 3) {

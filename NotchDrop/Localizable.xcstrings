@@ -376,6 +376,9 @@
         }
       }
     },
+    "Add note..." : {
+
+    },
     "AirDrop" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1495,7 +1498,13 @@
         }
       }
     },
+    "No events" : {
+
+    },
     "No Media Playing" : {
+
+    },
+    "No notes yet" : {
 
     },
     "Notch Drop" : {
@@ -1543,9 +1552,6 @@
 
     },
     "NotchOS only uses what it needs to run." : {
-
-    },
-    "Nothing for today" : {
 
     },
     "Nothing scheduled today" : {
@@ -1679,6 +1685,9 @@
       }
     },
     "Push your pointer to the top of the screen to open your Notch Home." : {
+
+    },
+    "QUICK NOTE" : {
 
     },
     "Selected sharing service not available" : {
@@ -1969,7 +1978,7 @@
         }
       }
     },
-    "today" : {
+    "TODAY" : {
 
     },
     "Traditional Chinese" : {

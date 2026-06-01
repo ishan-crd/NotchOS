@@ -38,7 +38,7 @@ class NotchViewModel: NSObject, ObservableObject {
                 let w = max(contentWidth + 32, 300)
                 return .init(width: w, height: 160)
             case .grid:
-                return .init(width: 500, height: 160)
+                return .init(width: 520, height: 160)
             case .focus:
                 return .init(width: 540, height: 255)
             }
