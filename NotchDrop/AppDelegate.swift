@@ -58,7 +58,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         mainWindowController = nil
         guard let mainScreen = findScreenFitsOurNeeds() else { return }
         mainWindowController = .init(screen: mainScreen)
-        if isFirstOpen || !UserDefaults.standard.bool(forKey: "onboardingCompleted"), !isLaunchedAtLogin {
+        if isFirstOpen, !isLaunchedAtLogin {
             mainWindowController?.openAfterCreate = true
         }
     }
