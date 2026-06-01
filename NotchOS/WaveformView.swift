@@ -2,11 +2,12 @@ import SwiftUI
 
 struct WaveformView: View {
     let isPlaying: Bool
+    var color: Color = .white
 
     var body: some View {
         HStack(spacing: 1.5) {
             ForEach(0..<5, id: \.self) { index in
-                WaveformBar(isPlaying: isPlaying, index: index)
+                WaveformBar(isPlaying: isPlaying, color: color, index: index)
             }
         }
     }
@@ -14,6 +15,7 @@ struct WaveformView: View {
 
 private struct WaveformBar: View {
     let isPlaying: Bool
+    let color: Color
     let index: Int
 
     @State private var animating = false
@@ -26,7 +28,7 @@ private struct WaveformBar: View {
 
     var body: some View {
         RoundedRectangle(cornerRadius: 1.5)
-            .fill(Color.white.opacity(0.9))
+            .fill(color.opacity(0.9))
             .frame(width: 2.5)
             .scaleEffect(y: animating ? targetScale : 0.3, anchor: .center)
             .onChange(of: isPlaying) { playing in

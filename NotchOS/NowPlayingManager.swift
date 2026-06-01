@@ -9,6 +9,7 @@ class NowPlayingManager: ObservableObject {
     @Published var album: String = ""
     @Published var artwork: NSImage?
     @Published var isPlaying: Bool = false
+    @Published var dominantColor: NSColor = .white
     @Published var hasNowPlaying: Bool = false
     @Published var position: Double = 0   // seconds
     @Published var duration: Double = 0   // seconds
@@ -171,7 +172,10 @@ class NowPlayingManager: ObservableObject {
         guard urlString != "none", !urlString.isEmpty, let url = URL(string: urlString) else { return }
 
         if let cached = artworkCache[urlString] {
-            if artwork !== cached { artwork = cached }
+            if artwork !== cached {
+                artwork = cached
+                dominantColor = Self.extractDominantColor(from: cached)
+            }
             return
         }
 
@@ -183,8 +187,49 @@ class NowPlayingManager: ObservableObject {
                 }
                 self.artworkCache[urlString] = image
                 self.artwork = image
+                self.dominantColor = Self.extractDominantColor(from: image)
             }
         }.resume()
+    }
+
+    private static func extractDominantColor(from image: NSImage) -> NSColor {
+        guard let tiffData = image.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiffData),
+              let ciImage = CIImage(bitmapImageRep: bitmap)
+        else { return .white }
+
+        let extent = ciImage.extent
+        // Sample center region for better color
+        let cropRect = CGRect(
+            x: extent.width * 0.25, y: extent.height * 0.25,
+            width: extent.width * 0.5, height: extent.height * 0.5
+        )
+        let cropped = ciImage.cropped(to: cropRect)
+
+        guard let filter = CIFilter(name: "CIAreaAverage", parameters: [
+            kCIInputImageKey: cropped,
+            kCIInputExtentKey: CIVector(cgRect: cropped.extent)
+        ]),
+              let output = filter.outputImage
+        else { return .white }
+
+        var pixel = [UInt8](repeating: 0, count: 4)
+        CIContext().render(output, toBitmap: &pixel, rowBytes: 4,
+                           bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
+                           format: .RGBA8, colorSpace: CGColorSpaceCreateDeviceRGB())
+
+        let color = NSColor(
+            red: CGFloat(pixel[0]) / 255,
+            green: CGFloat(pixel[1]) / 255,
+            blue: CGFloat(pixel[2]) / 255,
+            alpha: 1
+        )
+
+        // Boost saturation and brightness so it's vibrant on dark background
+        let h = color.hueComponent
+        let s = min(color.saturationComponent * 1.4, 1.0)
+        let b = max(color.brightnessComponent, 0.7)
+        return NSColor(hue: h, saturation: s, brightness: b, alpha: 1)
     }
 
     private func clearNowPlaying() {
