@@ -13,6 +13,10 @@ class NowPlayingManager: ObservableObject {
     @Published var position: Double = 0   // seconds
     @Published var duration: Double = 0   // seconds
 
+    private var cachedSpotifyRunning: Bool = false
+    private var cachedMusicRunning: Bool = false
+    private var appCheckCounter: Int = 0
+
     private var artworkCache: [String: NSImage] = [:]
     private let maxCacheSize = 10
     private var lastArtworkURL: String = ""
@@ -82,15 +86,24 @@ class NowPlayingManager: ObservableObject {
     }
 
     @objc private func handlePlaybackChange(_ notification: Notification) {
+        appCheckCounter = 6 // force app re-check on notification
         fetchOnMainThread()
     }
 
     // MARK: - Fetching
 
     private func fetchOnMainThread() {
-        if isAppRunning("com.spotify.client") {
+        // Re-check running apps every 6th poll (~30s) instead of every poll
+        appCheckCounter += 1
+        if appCheckCounter >= 6 || !hasNowPlaying {
+            appCheckCounter = 0
+            cachedSpotifyRunning = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.spotify.client" }
+            cachedMusicRunning = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.apple.Music" }
+        }
+
+        if cachedSpotifyRunning {
             runScript(spotifyScript)
-        } else if isAppRunning("com.apple.Music") {
+        } else if cachedMusicRunning {
             runScript(musicScript)
         } else {
             clearNowPlaying()
@@ -133,8 +146,9 @@ class NowPlayingManager: ObservableObject {
         if parts.count >= 7 {
             let newPos = Double(parts[5].trimmingCharacters(in: .whitespaces)) ?? 0
             let newDur = Double(parts[6].trimmingCharacters(in: .whitespaces)) ?? 0
-            position = newPos
-            duration = newDur
+            // Only update when changed by ≥1s to avoid constant redraws
+            if abs(position - newPos) >= 1 { position = newPos }
+            if abs(duration - newDur) >= 1 { duration = newDur }
         }
 
         if artworkURL != lastArtworkURL {
@@ -179,7 +193,7 @@ class NowPlayingManager: ObservableObject {
     // MARK: - Playback Controls
 
     func togglePlayPause() {
-        if isAppRunning("com.spotify.client") {
+        if cachedSpotifyRunning {
             executeScript("tell application \"Spotify\" to playpause")
         } else {
             executeScript("tell application \"Music\" to playpause")
@@ -190,7 +204,7 @@ class NowPlayingManager: ObservableObject {
     }
 
     func nextTrack() {
-        if isAppRunning("com.spotify.client") {
+        if cachedSpotifyRunning {
             executeScript("tell application \"Spotify\" to next track")
         } else {
             executeScript("tell application \"Music\" to next track")
@@ -201,7 +215,7 @@ class NowPlayingManager: ObservableObject {
     }
 
     func previousTrack() {
-        if isAppRunning("com.spotify.client") {
+        if cachedSpotifyRunning {
             executeScript("tell application \"Spotify\" to previous track")
         } else {
             executeScript("tell application \"Music\" to back track")
@@ -209,10 +223,6 @@ class NowPlayingManager: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.fetchOnMainThread()
         }
-    }
-
-    private func isAppRunning(_ bundleId: String) -> Bool {
-        NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == bundleId }
     }
 
     private func executeScript(_ source: String) {

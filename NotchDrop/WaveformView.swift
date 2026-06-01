@@ -19,15 +19,19 @@ private struct WaveformBar: View {
     @State private var animating = false
 
     private var delay: Double { Double(index) * 0.12 }
+    // Fixed random heights per bar to avoid recomputing
+    private var targetScale: CGFloat {
+        [0.65, 0.9, 0.75, 0.85, 0.7][index % 5]
+    }
 
     var body: some View {
         RoundedRectangle(cornerRadius: 1.5)
             .fill(Color.white.opacity(0.9))
             .frame(width: 2.5)
-            .scaleEffect(y: animating ? CGFloat.random(in: 0.5...1.0) : 0.3, anchor: .center)
+            .scaleEffect(y: animating ? targetScale : 0.3, anchor: .center)
             .onChange(of: isPlaying) { playing in
                 if playing {
-                    withAnimation(.easeInOut(duration: Double.random(in: 0.3...0.6)).repeatForever(autoreverses: true).delay(delay)) {
+                    withAnimation(.easeInOut(duration: 0.45).repeatForever(autoreverses: true).delay(delay)) {
                         animating = true
                     }
                 } else {
@@ -38,7 +42,7 @@ private struct WaveformBar: View {
             }
             .onAppear {
                 guard isPlaying else { return }
-                withAnimation(.easeInOut(duration: Double.random(in: 0.3...0.6)).repeatForever(autoreverses: true).delay(delay)) {
+                withAnimation(.easeInOut(duration: 0.45).repeatForever(autoreverses: true).delay(delay)) {
                     animating = true
                 }
             }
