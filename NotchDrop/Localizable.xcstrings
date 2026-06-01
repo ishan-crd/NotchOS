@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "& Press Option to delete" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -583,6 +586,7 @@
 
     },
     "Days" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -834,6 +838,7 @@
       }
     },
     "File Storage Time: " : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1119,6 +1124,7 @@
       }
     },
     "Haptic Feedback " : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1244,6 +1250,7 @@
       }
     },
     "Language: " : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1531,9 +1538,6 @@
           }
         }
       }
-    },
-    "Notch Style: " : {
-
     },
     "NotchOS" : {
 
@@ -1925,6 +1929,7 @@
       }
     },
     "Time Unit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

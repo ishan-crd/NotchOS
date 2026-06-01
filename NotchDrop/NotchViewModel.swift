@@ -43,6 +43,9 @@ class NotchViewModel: NSObject, ObservableObject {
                 return .init(width: 540, height: 255)
             }
         }
+        if contentType == .settings {
+            return .init(width: 480, height: 280)
+        }
         return .init(width: fixedContentWidth, height: 160)
     }
     let dropDetectorRange: CGFloat = 32
