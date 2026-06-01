@@ -12,6 +12,7 @@ class NowPlayingManager: ObservableObject {
     @Published var hasNowPlaying: Bool = false
 
     private var artworkCache: [String: NSImage] = [:]
+    private let maxCacheSize = 10
     private var lastArtworkURL: String = ""
     private var pollTimer: Timer?
 
@@ -140,6 +141,9 @@ class NowPlayingManager: ObservableObject {
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let self, let data, let image = NSImage(data: data) else { return }
             DispatchQueue.main.async {
+                if self.artworkCache.count >= self.maxCacheSize {
+                    self.artworkCache.removeAll()
+                }
                 self.artworkCache[urlString] = image
                 self.artwork = image
             }

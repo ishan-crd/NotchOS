@@ -54,7 +54,7 @@ struct CalendarView: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
 
     private let calendar = Calendar.current
-    private let today = Date()
+    private var today: Date { Date() }
 
     private var monthString: String {
         today.formatted(.dateTime.month(.abbreviated))
