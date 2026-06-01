@@ -35,6 +35,19 @@ struct NotchSettingsView: View {
             }
 
             HStack {
+                Text("Notch Style: ")
+                Picker(String(), selection: $vm.glassStyle) {
+                    ForEach(NotchViewModel.GlassStyle.allCases) { style in
+                        Text(style.rawValue).tag(style)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+                .frame(width: 150)
+
+                Spacer()
+            }
+
+            HStack {
                 Text("File Storage Time: ")
                 Picker(String(), selection: $tvm.selectedFileStorageTime) {
                     ForEach(TrayDrop.FileStorageTime.allCases) { time in

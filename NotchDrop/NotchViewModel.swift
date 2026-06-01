@@ -46,6 +46,14 @@ class NotchViewModel: NSObject, ObservableObject {
         case unknown
     }
 
+    enum GlassStyle: String, Codable, Hashable, Equatable, CaseIterable, Identifiable {
+        case flat = "Flat Matte"
+        case matte = "Soft Graphite"
+        case heavy = "Heavy Glass"
+
+        var id: String { rawValue }
+    }
+
     enum ContentType: Int, Codable, Hashable, Equatable {
         case normal
         case menu
@@ -91,6 +99,9 @@ class NotchViewModel: NSObject, ObservableObject {
 
     @PublishedPersist(key: "onboardingCompleted", defaultValue: false)
     var onboardingCompleted: Bool
+
+    @PublishedPersist(key: "glassStyle", defaultValue: .matte)
+    var glassStyle: GlassStyle
 
     let hapticSender = PassthroughSubject<Void, Never>()
 

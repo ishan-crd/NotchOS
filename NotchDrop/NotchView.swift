@@ -79,24 +79,64 @@ struct NotchView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
+    var notchBackground: some ShapeStyle {
+        if vm.status != .opened {
+            return AnyShapeStyle(.black)
+        }
+        switch vm.glassStyle {
+        case .flat:
+            return AnyShapeStyle(Color(red: 0.027, green: 0.027, blue: 0.031))
+        case .matte:
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Color(red: 0.075, green: 0.075, blue: 0.086), Color(red: 0.031, green: 0.031, blue: 0.039)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+        case .heavy:
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [Color(red: 0.086, green: 0.086, blue: 0.102).opacity(0.86), Color(red: 0.031, green: 0.031, blue: 0.039).opacity(0.92)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+        }
+    }
+
     var notch: some View {
-        Rectangle()
-            .foregroundStyle(.black)
-            .mask(notchBackgroundMaskGroup)
-            .overlay {
-                if nowPlaying.hasNowPlaying && vm.status != .opened {
-                    notchMusicOverlay
-                }
+        ZStack {
+            // Heavy glass: material layer behind the color, both masked together
+            if vm.status == .opened && vm.glassStyle == .heavy {
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .mask(notchBackgroundMaskGroup)
             }
-            .frame(
-                width: notchSize.width + notchCornerRadius * 2,
-                height: notchSize.height
-            )
-            .shadow(
-                color: .black.opacity(([.opened, .popping].contains(vm.status)) ? 1 : 0),
-                radius: 16
-            )
-            .animation(vm.animation, value: nowPlaying.hasNowPlaying)
+            Rectangle()
+                .foregroundStyle(notchBackground)
+                .mask(notchBackgroundMaskGroup)
+        }
+        .overlay {
+            if nowPlaying.hasNowPlaying && vm.status != .opened {
+                notchMusicOverlay
+            }
+        }
+        .overlay {
+            if vm.status == .opened {
+                RoundedRectangle(cornerRadius: notchCornerRadius)
+                    .strokeBorder(.white.opacity(0.06), lineWidth: 0.5)
+                    .padding(.top, -0.5)
+            }
+        }
+        .frame(
+            width: notchSize.width + notchCornerRadius * 2,
+            height: notchSize.height
+        )
+        .shadow(
+            color: .black.opacity(([.opened, .popping].contains(vm.status)) ? 1 : 0),
+            radius: 16
+        )
+        .animation(vm.animation, value: nowPlaying.hasNowPlaying)
+        .animation(vm.animation, value: vm.glassStyle)
     }
 
     var notchMusicOverlay: some View {
