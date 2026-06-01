@@ -10,6 +10,8 @@ class NowPlayingManager: ObservableObject {
     @Published var artwork: NSImage?
     @Published var isPlaying: Bool = false
     @Published var hasNowPlaying: Bool = false
+    @Published var position: Double = 0   // seconds
+    @Published var duration: Double = 0   // seconds
 
     private var artworkCache: [String: NSImage] = [:]
     private let maxCacheSize = 10
@@ -46,7 +48,9 @@ class NowPlayingManager: ObservableObject {
             set trackAlbum to album of current track
             set artURL to artwork url of current track
             set pState to player state as string
-            return trackName & "||" & trackArtist & "||" & trackAlbum & "||" & artURL & "||" & pState
+            set pos to player position
+            set dur to (duration of current track) / 1000
+            return trackName & "||" & trackArtist & "||" & trackAlbum & "||" & artURL & "||" & pState & "||" & (pos as string) & "||" & (dur as string)
         end tell
         """
         let musicSource = """
@@ -56,7 +60,9 @@ class NowPlayingManager: ObservableObject {
             set trackArtist to artist of current track
             set trackAlbum to album of current track
             set pState to player state as string
-            return trackName & "||" & trackArtist & "||" & trackAlbum & "||none||" & pState
+            set pos to player position
+            set dur to duration of current track
+            return trackName & "||" & trackArtist & "||" & trackAlbum & "||none||" & pState & "||" & (pos as string) & "||" & (dur as string)
         end tell
         """
         spotifyScript = NSAppleScript(source: spotifySource)
@@ -124,6 +130,13 @@ class NowPlayingManager: ObservableObject {
         if isPlaying != newIsPlaying { isPlaying = newIsPlaying }
         if !hasNowPlaying { hasNowPlaying = true }
 
+        if parts.count >= 7 {
+            let newPos = Double(parts[5].trimmingCharacters(in: .whitespaces)) ?? 0
+            let newDur = Double(parts[6].trimmingCharacters(in: .whitespaces)) ?? 0
+            position = newPos
+            duration = newDur
+        }
+
         if artworkURL != lastArtworkURL {
             lastArtworkURL = artworkURL
             loadArtwork(from: artworkURL)
@@ -158,6 +171,8 @@ class NowPlayingManager: ObservableObject {
         artwork = nil
         isPlaying = false
         hasNowPlaying = false
+        position = 0
+        duration = 0
         lastArtworkURL = ""
     }
 

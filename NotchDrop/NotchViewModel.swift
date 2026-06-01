@@ -40,7 +40,7 @@ class NotchViewModel: NSObject, ObservableObject {
             case .grid:
                 return .init(width: 500, height: 160)
             case .focus:
-                return .init(width: 500, height: 220)
+                return .init(width: 540, height: 255)
             }
         }
         return .init(width: fixedContentWidth, height: 160)
@@ -133,6 +133,7 @@ class NotchViewModel: NSObject, ObservableObject {
     var dashboardLayout: DashboardLayout
 
     @Published var activeTab: Tab = .nook
+    @Published var focusPage: Int = 0
     @Published var isEditing: Bool = false
 
     let hapticSender = PassthroughSubject<Void, Never>()
@@ -155,6 +156,7 @@ class NotchViewModel: NSObject, ObservableObject {
         status = .closed
         contentType = .normal
         activeTab = .nook
+        focusPage = 0
         isEditing = false
     }
 

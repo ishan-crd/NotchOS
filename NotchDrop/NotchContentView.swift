@@ -78,11 +78,7 @@ struct NotchContentView: View {
     }
 
     var focusLayout: some View {
-        VStack(spacing: 10) {
-            MediaPlayerView(vm: vm)
-            CalendarView(vm: vm)
-                .frame(height: 70)
-        }
+        FocusCarouselView(vm: vm)
     }
 
     // MARK: - Edit Mode Overlay
@@ -146,9 +142,9 @@ struct NotchContentView: View {
             }
             .frame(height: 28)
         case .focus:
-            VStack(spacing: 3) {
-                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.2)).frame(height: 18)
-                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.12)).frame(height: 10)
+            HStack(spacing: 4) {
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.2)).frame(width: 36, height: 28)
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.08)).frame(width: 14, height: 28)
             }
         }
     }
@@ -195,6 +191,210 @@ struct NotchContentView: View {
         }
         .animation(vm.animation, value: vm.contentType)
         .animation(vm.animation, value: vm.activeTab)
+    }
+}
+
+// MARK: - Focus Carousel
+
+struct FocusCarouselView: View {
+    @StateObject var vm: NotchViewModel
+    @State private var dragOffset: CGFloat = 0
+
+    private let pageCount = 2
+
+    var body: some View {
+        VStack(spacing: 8) {
+            GeometryReader { geo in
+                let pageWidth = geo.size.width
+                let currentOffset = -CGFloat(vm.focusPage) * pageWidth + dragOffset
+
+                HStack(spacing: 0) {
+                    FocusMediaPlayerView(vm: vm)
+                        .frame(width: pageWidth, height: geo.size.height)
+                    CalendarView(vm: vm)
+                        .frame(width: pageWidth, height: geo.size.height)
+                }
+                .offset(x: currentOffset)
+                .gesture(
+                    DragGesture(minimumDistance: 10)
+                        .onChanged { value in
+                            dragOffset = value.translation.width
+                        }
+                        .onEnded { value in
+                            let threshold: CGFloat = pageWidth * 0.2
+                            let predicted = value.predictedEndTranslation.width
+                            withAnimation(vm.animation) {
+                                if predicted < -threshold, vm.focusPage < pageCount - 1 {
+                                    vm.focusPage += 1
+                                } else if predicted > threshold, vm.focusPage > 0 {
+                                    vm.focusPage -= 1
+                                }
+                                dragOffset = 0
+                            }
+                        }
+                )
+                .animation(vm.animation, value: vm.focusPage)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadius))
+
+            // Page dots
+            HStack(spacing: 6) {
+                ForEach(0..<pageCount, id: \.self) { i in
+                    Capsule()
+                        .fill(i == vm.focusPage ? .white.opacity(0.8) : .white.opacity(0.15))
+                        .frame(width: i == vm.focusPage ? 16 : 5, height: 5)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Focus Media Player (expanded single-card view)
+
+struct FocusMediaPlayerView: View {
+    @StateObject var vm: NotchViewModel
+    @ObservedObject private var nowPlaying = NowPlayingManager.shared
+
+    private func formatTime(_ seconds: Double) -> String {
+        guard seconds.isFinite, seconds >= 0 else { return "0:00" }
+        let mins = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return "\(mins):\(String(format: "%02d", secs))"
+    }
+
+    var body: some View {
+        Group {
+            if nowPlaying.hasNowPlaying {
+                playerContent
+            } else {
+                emptyState
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    var emptyState: some View {
+        RoundedRectangle(cornerRadius: vm.cornerRadius)
+            .strokeBorder(style: StrokeStyle(lineWidth: 4, dash: [10]))
+            .foregroundStyle(.white.opacity(0.1))
+            .overlay {
+                VStack(spacing: 8) {
+                    Image(systemName: "music.note")
+                    Text("No Media Playing")
+                        .font(.system(.headline, design: .rounded))
+                }
+            }
+    }
+
+    var playerContent: some View {
+        VStack(spacing: 0) {
+            // Top section: artwork + track info
+            HStack(spacing: 14) {
+                artworkView
+                trackInfo
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 10)
+
+            Spacer(minLength: 6)
+
+            // Progress bar
+            progressBar
+                .padding(.horizontal, 14)
+
+            Spacer(minLength: 6)
+
+            // Controls
+            controls
+                .padding(.bottom, 8)
+        }
+    }
+
+    var artworkView: some View {
+        Group {
+            if let artwork = nowPlaying.artwork {
+                Image(nsImage: artwork)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                ZStack {
+                    Color.white.opacity(0.1)
+                    Image(systemName: "music.note")
+                        .font(.title2)
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+            }
+        }
+        .frame(width: 90, height: 90)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    var trackInfo: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(nowPlaying.title)
+                .font(.system(size: 17, weight: .bold))
+                .lineLimit(1)
+
+            Text(nowPlaying.album)
+                .font(.system(size: 13))
+                .foregroundStyle(.white.opacity(0.5))
+                .lineLimit(1)
+
+            Text(nowPlaying.artist)
+                .font(.system(size: 13))
+                .foregroundStyle(.white.opacity(0.4))
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    var progressBar: some View {
+        VStack(spacing: 2) {
+            GeometryReader { geo in
+                let progress = nowPlaying.duration > 0 ? min(nowPlaying.position / nowPlaying.duration, 1.0) : 0
+
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(.white.opacity(0.15))
+                        .frame(height: 3)
+                    Capsule()
+                        .fill(.white.opacity(0.9))
+                        .frame(width: geo.size.width * progress, height: 3)
+                }
+            }
+            .frame(height: 3)
+
+            HStack {
+                Text(formatTime(nowPlaying.position))
+                Spacer()
+                Text(formatTime(nowPlaying.duration))
+            }
+            .font(.system(size: 10, weight: .medium, design: .monospaced))
+            .foregroundStyle(.white.opacity(0.35))
+        }
+    }
+
+    var controls: some View {
+        HStack(spacing: 28) {
+            Button(action: { nowPlaying.previousTrack() }) {
+                Image(systemName: "backward.fill")
+                    .font(.system(size: 15))
+            }
+            .buttonStyle(.plain)
+
+            Button(action: { nowPlaying.togglePlayPause() }) {
+                Image(systemName: nowPlaying.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 22))
+            }
+            .buttonStyle(.plain)
+
+            Button(action: { nowPlaying.nextTrack() }) {
+                Image(systemName: "forward.fill")
+                    .font(.system(size: 15))
+            }
+            .buttonStyle(.plain)
+        }
+        .foregroundStyle(.white)
     }
 }
 
