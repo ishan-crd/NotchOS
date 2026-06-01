@@ -41,7 +41,7 @@ class NotchViewModel: NSObject, ObservableObject {
             }
         }
         if contentType == .settings {
-            return .init(width: 480, height: 280)
+            return .init(width: 480, height: 320)
         }
         return .init(width: fixedContentWidth, height: 160)
     }
