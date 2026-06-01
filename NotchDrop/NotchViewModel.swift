@@ -43,6 +43,7 @@ class NotchViewModel: NSObject, ObservableObject {
         case normal
         case menu
         case settings
+        case tray
     }
 
     var notchOpenedRect: CGRect {
@@ -85,7 +86,7 @@ class NotchViewModel: NSObject, ObservableObject {
     func notchOpen(_ reason: OpenReason) {
         openReason = reason
         status = .opened
-        contentType = .normal
+        contentType = reason == .drag ? .tray : .normal
         NSApp.activate(ignoringOtherApps: true)
     }
 

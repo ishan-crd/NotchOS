@@ -36,10 +36,6 @@ struct MediaPlayerView: View {
             trackInfo
         }
         .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: vm.cornerRadius)
-                .fill(.white.opacity(0.08))
-        )
     }
 
     var artworkView: some View {

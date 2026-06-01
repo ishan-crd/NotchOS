@@ -42,6 +42,9 @@
         }
       }
     },
+    "%lld" : {
+
+    },
     "1 Day" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1468,6 +1471,7 @@
 
     },
     "Notch Drop" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1506,6 +1510,9 @@
           }
         }
       }
+    },
+    "NotchOS" : {
+
     },
     "OK" : {
       "localizations" : {
@@ -1948,6 +1955,9 @@
           }
         }
       }
+    },
+    "Tray" : {
+
     },
     "two days" : {
       "localizations" : {
