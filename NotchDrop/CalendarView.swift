@@ -68,43 +68,49 @@ struct CalendarView: View {
     }
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Month label
+        HStack(alignment: .center, spacing: 12) {
+            // Month label — large, vertically centered on left
             Text(monthString)
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
-                .frame(width: 55, alignment: .leading)
 
-            VStack(alignment: .leading, spacing: 8) {
+            // Right side: dates on top, event info centered below
+            VStack(spacing: 10) {
                 // Date strip
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     ForEach(dateRange, id: \.self) { date in
                         let isToday = calendar.isDateInToday(date)
-                        VStack(spacing: 2) {
-                            Text(date.formatted(.dateTime.weekday(.abbreviated)).uppercased())
-                                .font(.system(size: 8, weight: .medium))
-                                .foregroundStyle(isToday ? .blue : .white.opacity(0.4))
+                        VStack(spacing: 1) {
+                            if isToday {
+                                Text("today")
+                                    .font(.system(size: 7, weight: .bold))
+                                    .foregroundStyle(.red)
+                            } else {
+                                Text(date.formatted(.dateTime.weekday(.abbreviated)).uppercased())
+                                    .font(.system(size: 7, weight: .medium))
+                                    .foregroundStyle(.white.opacity(0.3))
+                            }
                             Text(date.formatted(.dateTime.day()))
-                                .font(.system(size: 14, weight: isToday ? .bold : .regular, design: .rounded))
-                                .foregroundStyle(isToday ? .blue : .white.opacity(0.6))
+                                .font(.system(size: isToday ? 22 : 13, weight: isToday ? .bold : .regular, design: .rounded))
+                                .foregroundStyle(isToday ? .blue : .white.opacity(0.4))
                         }
-                        .frame(width: 28)
+                        .frame(width: isToday ? 34 : 26)
                     }
                 }
 
-                // Next event
-                HStack(spacing: 6) {
+                // Next event — centered below dates
+                HStack(spacing: 5) {
                     if let event = calendarManager.nextEvent {
                         Circle()
                             .fill(Color(cgColor: event.calendar.cgColor))
                             .frame(width: 6, height: 6)
                         Text(event.title)
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(.white.opacity(0.6))
                             .lineLimit(1)
                     } else {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 10))
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 12))
                             .foregroundStyle(.white.opacity(0.3))
                         Text("Nothing for today")
                             .font(.system(size: 11))
@@ -114,7 +120,7 @@ struct CalendarView: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .frame(maxHeight: .infinity)
     }
 }

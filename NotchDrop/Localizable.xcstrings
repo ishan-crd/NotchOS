@@ -1918,6 +1918,9 @@
         }
       }
     },
+    "today" : {
+
+    },
     "Traditional Chinese" : {
       "extractionState" : "manual",
       "localizations" : {
