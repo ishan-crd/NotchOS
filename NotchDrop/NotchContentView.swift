@@ -61,6 +61,7 @@ struct NotchContentView: View {
             case .normal:
                 HStack(spacing: vm.spacing) {
                     MediaPlayerView(vm: vm)
+                    CalendarView(vm: vm)
                     trayButton
                 }
                 .transition(.scale(scale: 0.8).combined(with: .opacity))

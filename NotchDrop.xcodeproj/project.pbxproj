@@ -49,6 +49,7 @@
 		A10000012D4C000000000003 /* NowPlayingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000001 /* NowPlayingManager.swift */; };
 		A10000012D4C000000000004 /* MediaPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000002 /* MediaPlayerView.swift */; };
 		A10000012D4C000000000006 /* WaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000005 /* WaveformView.swift */; };
+		A10000012D4C000000000008 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000007 /* CalendarView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -88,6 +89,7 @@
 		A10000012D4C000000000001 /* NowPlayingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingManager.swift; sourceTree = "<group>"; };
 		A10000012D4C000000000002 /* MediaPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerView.swift; sourceTree = "<group>"; };
 		A10000012D4C000000000005 /* WaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformView.swift; sourceTree = "<group>"; };
+		A10000012D4C000000000007 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,6 +167,7 @@
 				A10000012D4C000000000001 /* NowPlayingManager.swift */,
 				A10000012D4C000000000002 /* MediaPlayerView.swift */,
 				A10000012D4C000000000005 /* WaveformView.swift */,
+				A10000012D4C000000000007 /* CalendarView.swift */,
 			);
 			path = NotchDrop;
 			sourceTree = "<group>";
@@ -299,6 +302,7 @@
 				A10000012D4C000000000003 /* NowPlayingManager.swift in Sources */,
 				A10000012D4C000000000004 /* MediaPlayerView.swift in Sources */,
 				A10000012D4C000000000006 /* WaveformView.swift in Sources */,
+				A10000012D4C000000000008 /* CalendarView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

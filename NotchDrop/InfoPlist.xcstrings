@@ -79,7 +79,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NotchDrop needs access to control media playback and display now playing information."
+            "value" : "NotchOS needs access to control media playback and display now playing information."
+          }
+        }
+      }
+    },
+    "NSCalendarsFullAccessUsageDescription" : {
+      "comment" : "Privacy - Calendars Full Access Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "NotchOS needs access to your calendar to display upcoming events."
+          }
+        }
+      }
+    },
+    "NSCalendarsUsageDescription" : {
+      "comment" : "Privacy - Calendars Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "NotchOS needs access to your calendar to display upcoming events."
           }
         }
       }

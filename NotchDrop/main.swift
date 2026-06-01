@@ -58,6 +58,9 @@ TrayDrop.shared.cleanExpiredFiles()
 _ = NowPlayingManager.shared
 NowPlayingManager.shared.start()
 
+_ = CalendarManager.shared
+CalendarManager.shared.start()
+
 repeat {
     let executablePath = ProcessInfo.processInfo.arguments.first!
     let selfHandle = open(executablePath, O_EVTONLY)
