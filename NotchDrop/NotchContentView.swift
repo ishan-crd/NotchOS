@@ -215,8 +215,10 @@ struct FocusCarouselView: View {
                         .frame(width: pageWidth, height: geo.size.height)
                 }
                 .offset(x: currentOffset)
-                .gesture(
-                    DragGesture(minimumDistance: 10)
+                .animation(vm.animation, value: vm.focusPage)
+                .contentShape(Rectangle())
+                .highPriorityGesture(
+                    DragGesture(minimumDistance: 15)
                         .onChanged { value in
                             dragOffset = value.translation.width
                         }
@@ -233,7 +235,6 @@ struct FocusCarouselView: View {
                             }
                         }
                 )
-                .animation(vm.animation, value: vm.focusPage)
             }
             .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadius))
 
