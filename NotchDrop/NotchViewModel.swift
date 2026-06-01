@@ -24,12 +24,23 @@ class NotchViewModel: NSObject, ObservableObject {
         blendDuration: 0.125
     )
     @Published var contentWidth: CGFloat = 600
-    let notchOpenedHeight: CGFloat = 160
     let fixedContentWidth: CGFloat = 600
     var notchOpenedSize: CGSize {
-        let width = contentType == .normal ? max(contentWidth + 32, 300) : (contentType == .onboarding ? 380 : fixedContentWidth)
-        let height: CGFloat = contentType == .onboarding ? 480 : notchOpenedHeight
-        return .init(width: width, height: height)
+        if contentType == .onboarding {
+            return .init(width: 380, height: 480)
+        }
+        if contentType == .normal {
+            switch dashboardLayout {
+            case .split:
+                let w = max(contentWidth + 32, 300)
+                return .init(width: w, height: 160)
+            case .grid:
+                return .init(width: 500, height: 230)
+            case .focus:
+                return .init(width: 500, height: 280)
+            }
+        }
+        return .init(width: fixedContentWidth, height: 160)
     }
     let dropDetectorRange: CGFloat = 32
 
@@ -44,6 +55,14 @@ class NotchViewModel: NSObject, ObservableObject {
         case drag
         case boot
         case unknown
+    }
+
+    enum DashboardLayout: String, Codable, Hashable, Equatable, CaseIterable, Identifiable {
+        case split = "Split Row"
+        case grid = "Compact Grid"
+        case focus = "Single Focus"
+
+        var id: String { rawValue }
     }
 
     enum GlassStyle: String, Codable, Hashable, Equatable, CaseIterable, Identifiable {
@@ -103,6 +122,11 @@ class NotchViewModel: NSObject, ObservableObject {
     @PublishedPersist(key: "glassStyle", defaultValue: .matte)
     var glassStyle: GlassStyle
 
+    @PublishedPersist(key: "dashboardLayout", defaultValue: .split)
+    var dashboardLayout: DashboardLayout
+
+    @Published var isEditing: Bool = false
+
     let hapticSender = PassthroughSubject<Void, Never>()
 
     func notchOpen(_ reason: OpenReason) {
@@ -121,6 +145,7 @@ class NotchViewModel: NSObject, ObservableObject {
         openReason = .unknown
         status = .closed
         contentType = .normal
+        isEditing = false
     }
 
     func showSettings() {

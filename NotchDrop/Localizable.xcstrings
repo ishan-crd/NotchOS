@@ -579,6 +579,9 @@
         }
       }
     },
+    "Dashboard Layout" : {
+
+    },
     "Days" : {
       "localizations" : {
         "de" : {
@@ -620,6 +623,9 @@
       }
     },
     "Delete" : {
+
+    },
+    "Done" : {
 
     },
     "Drag files here to keep them for" : {
@@ -702,6 +708,9 @@
           }
         }
       }
+    },
+    "Edit" : {
+
     },
     "English" : {
       "extractionState" : "manual",
@@ -1148,6 +1157,9 @@
           }
         }
       }
+    },
+    "Home" : {
+
     },
     "Hours" : {
       "extractionState" : "manual",

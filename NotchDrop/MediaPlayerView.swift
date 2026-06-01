@@ -5,15 +5,14 @@ struct MediaPlayerView: View {
     @ObservedObject private var nowPlaying = NowPlayingManager.shared
 
     var body: some View {
-        Group { 
+        Group {
             if nowPlaying.hasNowPlaying {
                 playerContent
             } else {
                 emptyState
             }
         }
-        .frame(maxHeight: .infinity)
-        .frame(width: 240)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: vm.cornerRadius))
     }
 
