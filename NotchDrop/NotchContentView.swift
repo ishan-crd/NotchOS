@@ -59,35 +59,6 @@ struct NotchContentView: View {
     @StateObject var vm: NotchViewModel
     @StateObject var tvm = TrayDrop.shared
 
-    var trayButton: some View {
-        Button {
-            vm.contentType = .tray
-        } label: {
-            RoundedRectangle(cornerRadius: vm.cornerRadius)
-                .fill(.white.opacity(0.08))
-                .overlay {
-                    HStack(spacing: 6) {
-                        ZStack {
-                            Image(systemName: "tray.and.arrow.down.fill")
-                                .font(.system(size: 16))
-                            if !tvm.isEmpty {
-                                Text("\(tvm.items.count)")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 1)
-                                    .background(Capsule().fill(.blue))
-                                    .offset(x: 12, y: -8)
-                            }
-                        }
-                        Text(NSLocalizedString("Tray", comment: ""))
-                            .font(.system(.caption, design: .rounded))
-                    }
-                }
-        }
-        .buttonStyle(.plain)
-    }
-
     // MARK: - Layout Views
 
     var splitLayout: some View {
@@ -95,34 +66,22 @@ struct NotchContentView: View {
             MediaPlayerView(vm: vm)
                 .frame(width: 240)
             CalendarView(vm: vm)
-            trayButton
         }
         .fixedSize(horizontal: true, vertical: false)
     }
 
     var gridLayout: some View {
-        VStack(spacing: 10) {
-            HStack(spacing: 10) {
-                MediaPlayerView(vm: vm)
-                CalendarView(vm: vm)
-            }
-            HStack(spacing: 10) {
-                trayButton
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 60)
-            }
+        HStack(spacing: 10) {
+            MediaPlayerView(vm: vm)
+            CalendarView(vm: vm)
         }
     }
 
     var focusLayout: some View {
         VStack(spacing: 10) {
             MediaPlayerView(vm: vm)
-            HStack(spacing: 10) {
-                CalendarView(vm: vm)
-                trayButton
-                    .frame(width: 70)
-            }
-            .frame(height: 70)
+            CalendarView(vm: vm)
+                .frame(height: 70)
         }
     }
 
@@ -177,32 +136,19 @@ struct NotchContentView: View {
         switch layout {
         case .split:
             HStack(spacing: 3) {
-                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.2)).frame(width: 22, height: 28)
-                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.15)).frame(width: 22, height: 28)
-                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.1)).frame(width: 12, height: 28)
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.2)).frame(width: 28, height: 28)
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.15)).frame(width: 28, height: 28)
             }
         case .grid:
-            VStack(spacing: 3) {
-                HStack(spacing: 3) {
-                    RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.2))
-                    RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.15))
-                }
-                .frame(height: 13)
-                HStack(spacing: 3) {
-                    RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.12))
-                    RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.1))
-                }
-                .frame(height: 13)
+            HStack(spacing: 3) {
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.2))
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.15))
             }
+            .frame(height: 28)
         case .focus:
             VStack(spacing: 3) {
                 RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.2)).frame(height: 18)
-                HStack(spacing: 3) {
-                    RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.12))
-                    RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.1))
-                    RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.08))
-                }
-                .frame(height: 10)
+                RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.12)).frame(height: 10)
             }
         }
     }
@@ -212,26 +158,30 @@ struct NotchContentView: View {
             switch vm.contentType {
             case .normal:
                 Group {
-                    if vm.isEditing {
-                        editOverlay
-                    } else {
-                        switch vm.dashboardLayout {
-                        case .split: splitLayout
-                        case .grid: gridLayout
-                        case .focus: focusLayout
+                    switch vm.activeTab {
+                    case .nook:
+                        Group {
+                            if vm.isEditing {
+                                editOverlay
+                            } else {
+                                switch vm.dashboardLayout {
+                                case .split: splitLayout
+                                case .grid: gridLayout
+                                case .focus: focusLayout
+                                }
+                            }
                         }
+                        .background(GeometryReader { geo in
+                            Color.clear.preference(key: ContentWidthKey.self, value: geo.size.width)
+                        })
+                        .onPreferenceChange(ContentWidthKey.self) { width in
+                            if width > 0, !vm.isEditing { vm.contentWidth = width }
+                        }
+                    case .tray:
+                        TrayDropContentView(vm: vm)
                     }
                 }
-                .background(GeometryReader { geo in
-                    Color.clear.preference(key: ContentWidthKey.self, value: geo.size.width)
-                })
-                .onPreferenceChange(ContentWidthKey.self) { width in
-                    if width > 0, !vm.isEditing { vm.contentWidth = width }
-                }
                 .transition(.scale(scale: 0.8).combined(with: .opacity))
-            case .tray:
-                TrayDropContentView(vm: vm)
-                    .transition(.scale(scale: 0.8).combined(with: .opacity))
             case .menu:
                 NotchMenuView(vm: vm)
                     .transition(.scale(scale: 0.8).combined(with: .opacity))
@@ -244,6 +194,7 @@ struct NotchContentView: View {
             }
         }
         .animation(vm.animation, value: vm.contentType)
+        .animation(vm.animation, value: vm.activeTab)
     }
 }
 

@@ -30,14 +30,17 @@ class NotchViewModel: NSObject, ObservableObject {
             return .init(width: 380, height: 480)
         }
         if contentType == .normal {
+            if activeTab == .tray {
+                return .init(width: fixedContentWidth, height: 160)
+            }
             switch dashboardLayout {
             case .split:
                 let w = max(contentWidth + 32, 300)
                 return .init(width: w, height: 160)
             case .grid:
-                return .init(width: 500, height: 230)
+                return .init(width: 500, height: 160)
             case .focus:
-                return .init(width: 500, height: 280)
+                return .init(width: 500, height: 220)
             }
         }
         return .init(width: fixedContentWidth, height: 160)
@@ -73,11 +76,15 @@ class NotchViewModel: NSObject, ObservableObject {
         var id: String { rawValue }
     }
 
+    enum Tab: String, Codable, Hashable, Equatable {
+        case nook
+        case tray
+    }
+
     enum ContentType: Int, Codable, Hashable, Equatable {
         case normal
         case menu
         case settings
-        case tray
         case onboarding
     }
 
@@ -125,6 +132,7 @@ class NotchViewModel: NSObject, ObservableObject {
     @PublishedPersist(key: "dashboardLayout", defaultValue: .split)
     var dashboardLayout: DashboardLayout
 
+    @Published var activeTab: Tab = .nook
     @Published var isEditing: Bool = false
 
     let hapticSender = PassthroughSubject<Void, Never>()
@@ -135,7 +143,8 @@ class NotchViewModel: NSObject, ObservableObject {
         if !onboardingCompleted && reason == .boot {
             contentType = .onboarding
         } else {
-            contentType = reason == .drag ? .tray : .normal
+            contentType = .normal
+            activeTab = reason == .drag ? .tray : .nook
         }
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -145,6 +154,7 @@ class NotchViewModel: NSObject, ObservableObject {
         openReason = .unknown
         status = .closed
         contentType = .normal
+        activeTab = .nook
         isEditing = false
     }
 
