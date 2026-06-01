@@ -87,16 +87,34 @@ struct TrayView: View {
                         .font(.system(.headline, design: .rounded))
                 }
             } else {
-                ScrollView(.horizontal) {
-                    HStack(spacing: vm.spacing) {
-                        ForEach(tvm.items) { item in
-                            DropItemView(item: item, vm: vm, tvm: tvm)
+                HStack(spacing: 0) {
+                    ScrollView(.horizontal) {
+                        HStack(spacing: vm.spacing) {
+                            ForEach(tvm.items) { item in
+                                DropItemView(item: item, vm: vm, tvm: tvm)
+                            }
                         }
+                        .padding(vm.spacing)
                     }
-                    .padding(vm.spacing)
+                    .padding(-vm.spacing)
+                    .scrollIndicators(.never)
+
+                    Button {
+                        withAnimation(vm.animation) {
+                            tvm.removeAll()
+                        }
+                    } label: {
+                        VStack(spacing: 4) {
+                            Image(systemName: "trash")
+                                .font(.system(size: 14))
+                            Text("Clear")
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .foregroundStyle(.red.opacity(0.8))
+                        .frame(width: 44)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .padding(-vm.spacing)
-                .scrollIndicators(.never)
             }
         }
     }

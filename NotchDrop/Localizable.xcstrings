@@ -613,6 +613,9 @@
         }
       }
     },
+    "Delete" : {
+
+    },
     "Drag files here to keep them for" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1597,6 +1600,9 @@
         }
       }
     },
+    "Open" : {
+
+    },
     "Press Option to delete" : {
       "localizations" : {
         "de" : {
@@ -1755,6 +1761,9 @@
           }
         }
       }
+    },
+    "Show in Finder" : {
+
     },
     "Simplified Chinese" : {
       "extractionState" : "manual",

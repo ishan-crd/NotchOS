@@ -38,6 +38,26 @@ struct DropItemView: View {
         .scaleEffect(hover ? 1.05 : 1.0)
         .animation(vm.animation, value: hover)
         .draggable(item)
+        .contextMenu {
+            Button {
+                NSWorkspace.shared.open(item.storageURL)
+            } label: {
+                Label("Open", systemImage: "doc")
+            }
+            Button {
+                NSWorkspace.shared.activateFileViewerSelecting([item.storageURL])
+            } label: {
+                Label("Show in Finder", systemImage: "folder")
+            }
+            Divider()
+            Button(role: .destructive) {
+                withAnimation(vm.animation) {
+                    tvm.delete(item.id)
+                }
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
         .onTapGesture {
             guard !vm.optionKeyPressed else { return }
             vm.notchClose()
