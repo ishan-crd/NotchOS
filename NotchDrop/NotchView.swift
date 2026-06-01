@@ -56,10 +56,10 @@ struct NotchView: View {
                     VStack(spacing: vm.spacing) {
                         NotchHeaderView(vm: vm)
                         NotchContentView(vm: vm)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .frame(maxHeight: .infinity)
                     }
                     .padding(vm.spacing)
-                    .frame(maxWidth: vm.notchOpenedSize.width, maxHeight: vm.notchOpenedSize.height)
+                    .frame(height: vm.notchOpenedSize.height)
                     .zIndex(1)
                 }
             }

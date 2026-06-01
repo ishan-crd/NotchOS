@@ -10,6 +10,13 @@ import ColorfulX
 import SwiftUI
 import UniformTypeIdentifiers
 
+private struct ContentWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
 struct TrayDropContentView: View {
     @StateObject var vm: NotchViewModel
 
@@ -75,6 +82,12 @@ struct NotchContentView: View {
                 NotchSettingsView(vm: vm)
                     .transition(.scale(scale: 0.8).combined(with: .opacity))
             }
+        }
+        .background(GeometryReader { geo in
+            Color.clear.preference(key: ContentWidthKey.self, value: geo.size.width)
+        })
+        .onPreferenceChange(ContentWidthKey.self) { width in
+            if width > 0 { vm.contentWidth = width }
         }
         .animation(vm.animation, value: vm.contentType)
     }
