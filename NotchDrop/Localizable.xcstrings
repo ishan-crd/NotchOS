@@ -1293,6 +1293,9 @@
         }
       }
     },
+    "Last played" : {
+
+    },
     "Later" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1501,9 +1504,6 @@
     "No events" : {
 
     },
-    "No Media Playing" : {
-
-    },
     "No notes yet" : {
 
     },
@@ -1552,6 +1552,9 @@
 
     },
     "NotchOS only uses what it needs to run." : {
+
+    },
+    "Nothing Playing" : {
 
     },
     "Nothing scheduled today" : {

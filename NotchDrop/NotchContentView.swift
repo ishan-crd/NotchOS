@@ -274,24 +274,126 @@ struct FocusMediaPlayerView: View {
         Group {
             if nowPlaying.hasNowPlaying {
                 playerContent
+            } else if nowPlaying.hasLastPlayed {
+                lastPlayedContent
             } else {
-                emptyState
+                idleState
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    var emptyState: some View {
-        RoundedRectangle(cornerRadius: vm.cornerRadius)
-            .strokeBorder(style: StrokeStyle(lineWidth: 4, dash: [10]))
-            .foregroundStyle(.white.opacity(0.1))
-            .overlay {
-                VStack(spacing: 8) {
-                    Image(systemName: "music.note")
-                    Text("No Media Playing")
-                        .font(.system(.headline, design: .rounded))
+    var lastPlayedContent: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 14) {
+                Group {
+                    if let art = nowPlaying.lastArtwork {
+                        Image(nsImage: art)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } else {
+                        ZStack {
+                            Color.white.opacity(0.06)
+                            Image(systemName: "music.note")
+                                .font(.title2)
+                                .foregroundStyle(.white.opacity(0.3))
+                        }
+                    }
+                }
+                .frame(width: 90, height: 90)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .opacity(0.5)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(nowPlaying.lastTitle)
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.5))
+                        .lineLimit(1)
+                    Text(nowPlaying.lastArtist)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white.opacity(0.3))
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                    Text("Last played")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.2))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 10)
+
+            Spacer(minLength: 6)
+
+            // Resume button
+            Button { nowPlaying.togglePlayPause() } label: {
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.white.opacity(0.4))
+            }
+            .buttonStyle(.plain)
+
+            Spacer(minLength: 8)
+        }
+    }
+
+    var idleState: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.white.opacity(0.06))
+                    .frame(width: 90, height: 90)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Nothing Playing")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.15))
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(.white.opacity(0.05))
+                        .frame(width: 100, height: 11)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(.white.opacity(0.04))
+                        .frame(width: 70, height: 11)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 10)
+
+            Spacer(minLength: 6)
+
+            // Skeleton progress bar
+            VStack(spacing: 2) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(.white.opacity(0.06))
+                    .frame(height: 3)
+                HStack {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(.white.opacity(0.04))
+                        .frame(width: 28, height: 8)
+                    Spacer()
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(.white.opacity(0.04))
+                        .frame(width: 28, height: 8)
                 }
             }
+            .padding(.horizontal, 14)
+
+            Spacer(minLength: 6)
+
+            // Skeleton controls
+            HStack(spacing: 28) {
+                Image(systemName: "backward.fill")
+                    .font(.system(size: 15))
+                Image(systemName: "play.fill")
+                    .font(.system(size: 22))
+                Image(systemName: "forward.fill")
+                    .font(.system(size: 15))
+            }
+            .foregroundStyle(.white.opacity(0.08))
+
+            Spacer(minLength: 8)
+        }
     }
 
     var playerContent: some View {

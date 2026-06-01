@@ -13,9 +13,19 @@ class NowPlayingManager: ObservableObject {
     @Published var position: Double = 0   // seconds
     @Published var duration: Double = 0   // seconds
 
-    private var cachedSpotifyRunning: Bool = false
-    private var cachedMusicRunning: Bool = false
+    // Last played (retained when playback stops)
+    @Published var lastTitle: String = ""
+    @Published var lastArtist: String = ""
+    @Published var lastAlbum: String = ""
+    @Published var lastArtwork: NSImage?
+    @Published var hasLastPlayed: Bool = false
+
+    @Published private(set) var spotifyAvailable: Bool = false
+    @Published private(set) var musicAvailable: Bool = false
     private var appCheckCounter: Int = 0
+    // Keep internal aliases
+    var cachedSpotifyRunning: Bool { spotifyAvailable }
+    var cachedMusicRunning: Bool { musicAvailable }
 
     private var artworkCache: [String: NSImage] = [:]
     private let maxCacheSize = 10
@@ -97,8 +107,8 @@ class NowPlayingManager: ObservableObject {
         appCheckCounter += 1
         if appCheckCounter >= 6 || !hasNowPlaying {
             appCheckCounter = 0
-            cachedSpotifyRunning = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.spotify.client" }
-            cachedMusicRunning = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.apple.Music" }
+            spotifyAvailable = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.spotify.client" }
+            musicAvailable = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.apple.Music" }
         }
 
         if cachedSpotifyRunning {
@@ -179,6 +189,14 @@ class NowPlayingManager: ObservableObject {
 
     private func clearNowPlaying() {
         guard hasNowPlaying else { return }
+        // Save last played before clearing
+        if !title.isEmpty {
+            lastTitle = title
+            lastArtist = artist
+            lastAlbum = album
+            lastArtwork = artwork
+            hasLastPlayed = true
+        }
         title = ""
         artist = ""
         album = ""
