@@ -1,109 +1,74 @@
-# NotchDrop
+<p align="center">
+  <img src="./Resources/logo.png" width="128" height="128" alt="NotchOS Logo">
+</p>
 
-Transform your MacBook's notch into a convenient file drop zone.
+<h1 align="center">NotchOS</h1>
 
-[简体中文 🇨🇳](./Resources/i18n/zh-Hans/README.md)
+<p align="center">
+  Turn your MacBook's notch into a powerful command center.
+</p>
 
-[![App Store Icon](./Resources/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg)](https://apps.apple.com/app/notchdrop/id6529528324)
-
-For Developers: You can use [NotchNotification](https://github.com/Lakr233/NotchNotification) in your app, powered by NotchDrop.
-
-## 👀 Preview
-
-![Screenshot](./Resources/截屏2024-07-08%2003.14.34.png)
-
-## 🌟 Key Features
-
-- [x] Should work with your menu bar managers
-- [x] Drag and drop files to the notch
-- [x] Open AirDrop directly from the notch
-- [x] Automatically save files for 1 day, can be configured
-- [x] Open files with a simple click
-- [x] Delete files by holding the option key and clicking the x mark
-- [x] Fully open source and privacy-focused
-- [x] Free of charge if you do it yourself
-
-## 🚀 Usage
-
-Download the latest version from [Releases](https://github.com/Lakr233/NotchDrop/releases).
-
-## 🔨 Building from Source
-
-### Prerequisites
-- macOS with Xcode installed
-- Xcode Command Line Tools
-
-### Build Instructions
-
-#### For Personal Daily Use (Production Build)
-
-This creates a production-optimized build that you can use daily on your Mac.
-
-1. Clone the repository:
-```bash
-git clone https://github.com/Lakr233/NotchDrop.git
-cd NotchDrop
-```
-
-2. Build the app in Release configuration:
-```bash
-xcodebuild -project NotchDrop.xcodeproj \
-  -scheme NotchDrop \
-  -configuration Release \
-  clean build \
-  CODE_SIGN_IDENTITY="-" \
-  CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGNING_ALLOWED=NO
-```
-
-3. Copy the built app to your Applications folder:
-```bash
-cp -R ~/Library/Developer/Xcode/DerivedData/NotchDrop-*/Build/Products/Release/NotchDrop.app ~/Applications/
-```
-
-4. Launch the app:
-```bash
-open ~/Applications/NotchDrop.app
-```
-
-**Note:** On first launch, macOS may show a security warning. To open:
-- Right-click on `NotchDrop.app` in Applications
-- Select "Open"
-- Click "Open" in the security dialog
-
-After the first time, the app will open normally.
-
-#### What This Build Does
-
-- **Release Configuration**: Builds with optimizations enabled for better performance
-- **Self-Signed**: Uses ad-hoc code signing (no Apple Developer account needed)
-- **Production Ready**: Suitable for daily use on your Mac
-- **Binary Size**: ~5.1MB
-- **Location**: `~/Applications/NotchDrop.app`
-
-#### For Development
-
-For development work, open the project in Xcode:
-```bash
-open NotchDrop.xcodeproj
-```
-
-Then build and run using Xcode (⌘R).
-
-## 🧑‍⚖️ License
-
-[MIT License](./LICENSE)
-
-## 🥰 Acknowledgements
-
-Special thanks to [NotchNook](https://lo.cafe/notchnook) for providing the initial inspiration. This open-source project focuses more on my own needs, simplifies various configurations, and improves compatibility with the software I prefer.
-
-## Sponsor
-
-[LookInside](https://lookinside-app.com/) helps you inspect a running iOS or macOS app UI from your Mac.
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-macOS%2014.5+-blue" alt="Platform">
+  <img src="https://img.shields.io/badge/swift-5.0-orange" alt="Swift">
+  <img src="https://img.shields.io/github/license/ishan-crd/NotchOS" alt="License">
+</p>
 
 ---
 
-Copyright © 2024 Lakr Aream. All Rights Reserved.
-# NotchOS
-# NotchOS
+NotchOS transforms the MacBook notch from dead space into a dynamic hub — drop files, control music, check your calendar, jot quick notes, and more, all without leaving your workflow.
+
+## Features
+
+- **File Drop Zone** — Drag and drop files onto the notch for temporary storage. Click to open, option-click to delete. Configurable auto-expiry.
+- **AirDrop Integration** — Instantly share dropped files via AirDrop from the notch.
+- **Now Playing Controls** — View album art, track info, and control playback (play/pause, skip, seek) directly from the notch.
+- **Calendar at a Glance** — See today's date and upcoming events without opening Calendar.
+- **Quick Notes** — Jot down todos and notes in a lightweight checklist that lives in your notch.
+- **Customizable Appearance** — Multiple notch styles (Opaque, Translucent, Material) to match your aesthetic.
+- **Settings** — Language selection, launch at login, haptic feedback, and file storage duration.
+- **Menu Bar Friendly** — Works alongside menu bar managers without conflicts.
+- **Privacy Focused** — Fully open source. Your data stays on your Mac.
+
+## Installation
+
+### From Source
+
+1. Clone the repository:
+```bash
+git clone https://github.com/ishan-crd/NotchOS.git
+cd NotchOS
+```
+
+2. Open in Xcode:
+```bash
+open NotchOS.xcodeproj
+```
+
+3. Build and run (⌘R).
+
+### Requirements
+
+- macOS 14.5+
+- Xcode 15.4+
+- MacBook with a notch (works on all Macs, optimized for notch models)
+
+## Usage
+
+Once launched, NotchOS lives in your MacBook's notch area. Hover over the notch to expand it, revealing:
+
+| Tab | What it does |
+|-----|-------------|
+| **Tray** | Drop files here for quick access and AirDrop sharing |
+| **Music** | Now playing controls with album art and waveform visualizer |
+| **Today** | Calendar view with upcoming events |
+| **Notes** | Quick checklist for todos and reminders |
+| **Settings** | Language, appearance, storage, and launch preferences |
+
+## Acknowledgements
+
+Built on top of [NotchDrop](https://github.com/Lakr233/NotchDrop) by [Lakr233](https://github.com/Lakr233). NotchOS extends the original with media controls, calendar integration, quick notes, and a redesigned UI.
+
+## License
+
+[MIT License](./LICENSE)
