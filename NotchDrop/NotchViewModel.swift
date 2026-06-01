@@ -20,7 +20,7 @@ class NotchViewModel: NSObject, ObservableObject {
 
     let animation: Animation = .interactiveSpring(
         duration: 0.5,
-        extraBounce: 0.25,
+        extraBounce: 0.1,
         blendDuration: 0.125
     )
     @Published var contentWidth: CGFloat = 600
