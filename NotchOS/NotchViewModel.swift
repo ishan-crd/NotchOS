@@ -122,7 +122,7 @@ class NotchViewModel: NSObject, ObservableObject {
     @PublishedPersist(key: "hapticFeedback", defaultValue: true)
     var hapticFeedback: Bool
 
-@PublishedPersist(key: "glassStyle", defaultValue: .matte)
+@PublishedPersist(key: "glassStyle", defaultValue: .flat)
     var glassStyle: GlassStyle
 
     @PublishedPersist(key: "dashboardLayout", defaultValue: .split)
