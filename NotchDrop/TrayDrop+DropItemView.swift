@@ -37,7 +37,9 @@ struct DropItemView: View {
         .onHover { hover = $0 }
         .scaleEffect(hover ? 1.05 : 1.0)
         .animation(vm.animation, value: hover)
-        .draggable(item)
+        .onDrag {
+            NSItemProvider(object: item.storageURL as NSURL)
+        }
         .contextMenu {
             Button {
                 NSWorkspace.shared.open(item.storageURL)
