@@ -105,3 +105,4 @@ Special thanks to [NotchNook](https://lo.cafe/notchnook) for providing the initi
 ---
 
 Copyright © 2024 Lakr Aream. All Rights Reserved.
+# NotchOS
