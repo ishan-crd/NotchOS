@@ -48,6 +48,7 @@
 		60AD62872C579F4400299297 /* NotchSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60AD62862C579F4400299297 /* NotchSettingsView.swift */; };
 		A10000012D4C000000000003 /* NowPlayingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000001 /* NowPlayingManager.swift */; };
 		A10000012D4C000000000004 /* MediaPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000002 /* MediaPlayerView.swift */; };
+		A10000012D4C000000000006 /* WaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000012D4C000000000005 /* WaveformView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +87,7 @@
 		60AD62862C579F4400299297 /* NotchSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchSettingsView.swift; sourceTree = "<group>"; };
 		A10000012D4C000000000001 /* NowPlayingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingManager.swift; sourceTree = "<group>"; };
 		A10000012D4C000000000002 /* MediaPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerView.swift; sourceTree = "<group>"; };
+		A10000012D4C000000000005 /* WaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,6 +164,7 @@
 				5044EE9F2C3B116000071C5C /* PublishedPersist.swift */,
 				A10000012D4C000000000001 /* NowPlayingManager.swift */,
 				A10000012D4C000000000002 /* MediaPlayerView.swift */,
+				A10000012D4C000000000005 /* WaveformView.swift */,
 			);
 			path = NotchDrop;
 			sourceTree = "<group>";
@@ -295,6 +298,7 @@
 				5044EEA02C3B116000071C5C /* PublishedPersist.swift in Sources */,
 				A10000012D4C000000000003 /* NowPlayingManager.swift in Sources */,
 				A10000012D4C000000000004 /* MediaPlayerView.swift in Sources */,
+				A10000012D4C000000000006 /* WaveformView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

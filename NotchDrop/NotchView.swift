@@ -9,14 +9,19 @@ import SwiftUI
 
 struct NotchView: View {
     @StateObject var vm: NotchViewModel
+    @ObservedObject private var nowPlaying = NowPlayingManager.shared
 
     @State var dropTargeting: Bool = false
+
+    private var musicExpand: CGFloat {
+        nowPlaying.hasNowPlaying && vm.status == .closed ? 80 : 0
+    }
 
     var notchSize: CGSize {
         switch vm.status {
         case .closed:
             var ans = CGSize(
-                width: vm.deviceNotchRect.width - 4,
+                width: vm.deviceNotchRect.width - 4 + musicExpand,
                 height: vm.deviceNotchRect.height - 4
             )
             if ans.width < 0 { ans.width = 0 }
@@ -26,7 +31,7 @@ struct NotchView: View {
             return vm.notchOpenedSize
         case .popping:
             return .init(
-                width: vm.deviceNotchRect.width,
+                width: vm.deviceNotchRect.width + musicExpand,
                 height: vm.deviceNotchRect.height + 4
             )
         }
@@ -45,7 +50,7 @@ struct NotchView: View {
             notch
                 .zIndex(0)
                 .disabled(true)
-                .opacity(vm.notchVisible ? 1 : 0.3)
+                .opacity(vm.notchVisible || nowPlaying.hasNowPlaying ? 1 : 0.3)
             Group {
                 if vm.status == .opened {
                     VStack(spacing: vm.spacing) {
@@ -76,6 +81,11 @@ struct NotchView: View {
         Rectangle()
             .foregroundStyle(.black)
             .mask(notchBackgroundMaskGroup)
+            .overlay {
+                if nowPlaying.hasNowPlaying && vm.status != .opened {
+                    notchMusicOverlay
+                }
+            }
             .frame(
                 width: notchSize.width + notchCornerRadius * 2,
                 height: notchSize.height
@@ -84,6 +94,39 @@ struct NotchView: View {
                 color: .black.opacity(([.opened, .popping].contains(vm.status)) ? 1 : 0),
                 radius: 16
             )
+            .animation(vm.animation, value: nowPlaying.hasNowPlaying)
+    }
+
+    var notchMusicOverlay: some View {
+        HStack {
+            // Album art on the left
+            Group {
+                if let artwork = nowPlaying.artwork {
+                    Image(nsImage: artwork)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Color.white.opacity(0.15)
+                        .overlay {
+                            Image(systemName: "music.note")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white.opacity(0.6))
+                        }
+                }
+            }
+            .frame(width: 22, height: 22)
+            .clipShape(RoundedRectangle(cornerRadius: 5))
+            .padding(.leading, 8)
+
+            Spacer()
+
+            // Waveform bars on the right
+            WaveformView(isPlaying: nowPlaying.isPlaying)
+                .frame(width: 28, height: 16)
+                .padding(.trailing, 8)
+        }
+        .frame(width: notchSize.width, height: notchSize.height)
+        .allowsHitTesting(false)
     }
 
     var notchBackgroundMaskGroup: some View {
