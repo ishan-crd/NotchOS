@@ -26,9 +26,6 @@ class NotchViewModel: NSObject, ObservableObject {
     @Published var contentWidth: CGFloat = 600
     let fixedContentWidth: CGFloat = 600
     var notchOpenedSize: CGSize {
-        if contentType == .onboarding {
-            return .init(width: 380, height: 480)
-        }
         if contentType == .normal {
             if activeTab == .tray {
                 return .init(width: fixedContentWidth, height: 160)
@@ -88,7 +85,6 @@ class NotchViewModel: NSObject, ObservableObject {
         case normal
         case menu
         case settings
-        case onboarding
     }
 
     var notchOpenedRect: CGRect {
@@ -126,10 +122,7 @@ class NotchViewModel: NSObject, ObservableObject {
     @PublishedPersist(key: "hapticFeedback", defaultValue: true)
     var hapticFeedback: Bool
 
-    @PublishedPersist(key: "onboardingCompleted", defaultValue: false)
-    var onboardingCompleted: Bool
-
-    @PublishedPersist(key: "glassStyle", defaultValue: .matte)
+@PublishedPersist(key: "glassStyle", defaultValue: .matte)
     var glassStyle: GlassStyle
 
     @PublishedPersist(key: "dashboardLayout", defaultValue: .split)
@@ -144,17 +137,12 @@ class NotchViewModel: NSObject, ObservableObject {
     func notchOpen(_ reason: OpenReason) {
         openReason = reason
         status = .opened
-        if !onboardingCompleted && reason == .boot {
-            contentType = .onboarding
-        } else {
-            contentType = .normal
-            activeTab = reason == .drag ? .tray : .nook
-        }
+        contentType = .normal
+        activeTab = reason == .drag ? .tray : .nook
         NSApp.activate(ignoringOtherApps: true)
     }
 
     func notchClose() {
-        guard contentType != .onboarding else { return }
         openReason = .unknown
         status = .closed
         contentType = .normal

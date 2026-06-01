@@ -83,6 +83,25 @@ struct NotchSettingsView: View {
                     }
                 }
             }
+
+            // MARK: - Quit
+            Button(action: {
+                NSApplication.shared.terminate(nil)
+            }) {
+                HStack {
+                    Image(systemName: "power")
+                    Text("Quit NotchOS")
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.red.opacity(0.9))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(.red.opacity(0.1))
+                )
+            }
+            .buttonStyle(.plain)
         }
         .transition(.scale(scale: 0.8).combined(with: .opacity))
     }
