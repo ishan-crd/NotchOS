@@ -61,22 +61,107 @@ struct CalendarView: View {
     }
 
     private var dateRange: [Date] {
-        // Show 3 days before and 3 days after today
-        (-3...3).compactMap { offset in
+        let range = vm.dashboardLayout == .focus ? (-3...3) : (-3...3)
+        return range.compactMap { offset in
             calendar.date(byAdding: .day, value: offset, to: today)
         }
     }
 
     var body: some View {
+        Group {
+            if vm.dashboardLayout == .focus {
+                focusBody
+            } else {
+                compactBody
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Focus layout (full-width card)
+
+    var focusBody: some View {
+        VStack(spacing: 0) {
+            // Month + Year header
+            HStack {
+                Text(today.formatted(.dateTime.month(.wide).year()))
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                Spacer()
+                // Today's full date
+                Text(today.formatted(.dateTime.weekday(.wide)))
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.4))
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+
+            Spacer(minLength: 10)
+
+            // Wide date strip
+            HStack(spacing: 0) {
+                ForEach(dateRange, id: \.self) { date in
+                    let isToday = calendar.isDateInToday(date)
+                    VStack(spacing: 4) {
+                        Text(date.formatted(.dateTime.weekday(.abbreviated)).uppercased())
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(isToday ? .white : .white.opacity(0.3))
+
+                        Text(date.formatted(.dateTime.day()))
+                            .font(.system(size: 18, weight: isToday ? .bold : .regular, design: .rounded))
+                            .foregroundStyle(isToday ? .white : .white.opacity(0.35))
+                            .frame(width: 32, height: 32)
+                            .background(
+                                Circle()
+                                    .fill(isToday ? .blue : .clear)
+                            )
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.horizontal, 10)
+
+            Spacer(minLength: 10)
+
+            // Next event bar
+            HStack(spacing: 8) {
+                if let event = calendarManager.nextEvent {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Color(cgColor: event.calendar.cgColor))
+                        .frame(width: 3, height: 20)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(event.title)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.7))
+                            .lineLimit(1)
+                        Text(event.startDate.formatted(.dateTime.hour().minute()))
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.35))
+                    }
+                } else {
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.25))
+                    Text("Nothing scheduled today")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.25))
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+        }
+    }
+
+    // MARK: - Compact layout (split/grid sidebar)
+
+    var compactBody: some View {
         HStack(alignment: .center, spacing: 12) {
-            // Month label — large, vertically centered on left
             Text(monthString)
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
 
-            // Right side: dates on top, event info centered below
             VStack(spacing: 10) {
-                // Date strip
                 HStack(spacing: 4) {
                     ForEach(dateRange, id: \.self) { date in
                         let isToday = calendar.isDateInToday(date)
@@ -98,7 +183,6 @@ struct CalendarView: View {
                     }
                 }
 
-                // Next event — centered below dates
                 HStack(spacing: 5) {
                     if let event = calendarManager.nextEvent {
                         Circle()
@@ -121,6 +205,5 @@ struct CalendarView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .frame(maxHeight: .infinity)
     }
 }
