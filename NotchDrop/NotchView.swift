@@ -22,7 +22,7 @@ struct NotchView: View {
         case .closed:
             var ans = CGSize(
                 width: vm.deviceNotchRect.width - 4 + musicExpand,
-                height: vm.deviceNotchRect.height - 4
+                height: vm.deviceNotchRect.height
             )
             if ans.width < 0 { ans.width = 0 }
             if ans.height < 0 { ans.height = 0 }
@@ -59,7 +59,7 @@ struct NotchView: View {
                             .frame(maxHeight: .infinity)
                     }
                     .padding(vm.spacing)
-                    .frame(height: vm.notchOpenedSize.height)
+                    .frame(width: vm.notchOpenedSize.width, height: vm.notchOpenedSize.height)
                     .zIndex(1)
                 }
             }
@@ -156,7 +156,7 @@ struct NotchView: View {
                 }
                 .compositingGroup()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .offset(x: -notchCornerRadius - vm.spacing + 0.5, y: -0.5)
+                .offset(x: -notchCornerRadius - vm.spacing + 1, y: -0.5)
             }
             .overlay {
                 ZStack(alignment: .topLeading) {
@@ -174,7 +174,7 @@ struct NotchView: View {
                 }
                 .compositingGroup()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .offset(x: notchCornerRadius + vm.spacing - 0.5, y: -0.5)
+                .offset(x: notchCornerRadius + vm.spacing - 1, y: -0.5)
             }
     }
 

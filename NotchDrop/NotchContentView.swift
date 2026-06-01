@@ -19,12 +19,39 @@ private struct ContentWidthKey: PreferenceKey {
 
 struct TrayDropContentView: View {
     @StateObject var vm: NotchViewModel
+    @StateObject var tvm = TrayDrop.shared
 
     var body: some View {
         HStack(spacing: vm.spacing) {
-            ShareView(vm: vm, type: .airdrop)
+            trayAirdropButton
             TrayView(vm: vm)
         }
+    }
+
+    var trayAirdropButton: some View {
+        RoundedRectangle(cornerRadius: vm.cornerRadius)
+            .fill(.white.opacity(0.08))
+            .overlay {
+                VStack(spacing: 8) {
+                    Image(systemName: "airplayaudio")
+                    Text(NSLocalizedString("AirDrop", comment: ""))
+                }
+                .font(.system(.headline, design: .rounded))
+                .foregroundStyle(tvm.isEmpty ? .white.opacity(0.3) : .white)
+            }
+            .aspectRatio(1, contentMode: .fit)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard !tvm.isEmpty else { return }
+                let urls = tvm.items.map(\.storageURL)
+                let share = Share(files: urls, serviceName: .sendViaAirDrop)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    vm.notchClose()
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    share.begin()
+                }
+            }
     }
 }
 
@@ -71,6 +98,13 @@ struct NotchContentView: View {
                     CalendarView(vm: vm)
                     trayButton
                 }
+                .fixedSize(horizontal: true, vertical: false)
+                .background(GeometryReader { geo in
+                    Color.clear.preference(key: ContentWidthKey.self, value: geo.size.width)
+                })
+                .onPreferenceChange(ContentWidthKey.self) { width in
+                    if width > 0 { vm.contentWidth = width }
+                }
                 .transition(.scale(scale: 0.8).combined(with: .opacity))
             case .tray:
                 TrayDropContentView(vm: vm)
@@ -82,12 +116,6 @@ struct NotchContentView: View {
                 NotchSettingsView(vm: vm)
                     .transition(.scale(scale: 0.8).combined(with: .opacity))
             }
-        }
-        .background(GeometryReader { geo in
-            Color.clear.preference(key: ContentWidthKey.self, value: geo.size.width)
-        })
-        .onPreferenceChange(ContentWidthKey.self) { width in
-            if width > 0 { vm.contentWidth = width }
         }
         .animation(vm.animation, value: vm.contentType)
     }

@@ -25,8 +25,10 @@ class NotchViewModel: NSObject, ObservableObject {
     )
     @Published var contentWidth: CGFloat = 600
     let notchOpenedHeight: CGFloat = 160
+    let fixedContentWidth: CGFloat = 600
     var notchOpenedSize: CGSize {
-        .init(width: max(contentWidth + 32, 300), height: notchOpenedHeight)
+        let width = contentType == .normal ? max(contentWidth + 32, 300) : fixedContentWidth
+        return .init(width: width, height: notchOpenedHeight)
     }
     let dropDetectorRange: CGFloat = 32
 

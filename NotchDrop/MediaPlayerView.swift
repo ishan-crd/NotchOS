@@ -5,7 +5,7 @@ struct MediaPlayerView: View {
     @ObservedObject private var nowPlaying = NowPlayingManager.shared
 
     var body: some View {
-        Group {
+        Group { 
             if nowPlaying.hasNowPlaying {
                 playerContent
             } else {
