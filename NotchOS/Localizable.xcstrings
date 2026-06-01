@@ -293,9 +293,6 @@
         }
       }
     },
-    "A couple of permissions" : {
-
-    },
     "a day" : {
       "localizations" : {
         "de" : {
@@ -500,9 +497,6 @@
           }
         }
       }
-    },
-    "Build your Notch Home" : {
-
     },
     "Clear" : {
       "localizations" : {
@@ -1548,12 +1542,6 @@
         }
       }
     },
-    "NotchOS" : {
-
-    },
-    "NotchOS only uses what it needs to run." : {
-
-    },
     "Nothing Playing" : {
 
     },
@@ -1643,9 +1631,6 @@
     "Open" : {
 
     },
-    "Pick the widgets you want. Rearrange anytime." : {
-
-    },
     "Press Option to delete" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1686,9 +1671,6 @@
           }
         }
       }
-    },
-    "Push your pointer to the top of the screen to open your Notch Home." : {
-
     },
     "QUICK NOTE" : {
 
@@ -1900,9 +1882,6 @@
         }
       }
     },
-    "The space above your screen, finally put to work. A living hub for everything you do." : {
-
-    },
     "three days" : {
       "localizations" : {
         "de" : {
@@ -2069,6 +2048,7 @@
       }
     },
     "Version: %@ (Build: %@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -2189,9 +2169,6 @@
           }
         }
       }
-    },
-    "You're all set" : {
-
     }
   },
   "version" : "1.0"
