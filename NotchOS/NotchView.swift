@@ -147,7 +147,7 @@ struct NotchView: View {
 
             // Waveform bars on the right
             WaveformView(isPlaying: nowPlaying.isPlaying, color: Color(nsColor: nowPlaying.dominantColor))
-                .frame(width: 28, height: 16)
+                .frame(width: 22, height: 12)
                 .padding(.trailing, 8)
         }
         .frame(width: notchSize.width, height: notchSize.height)

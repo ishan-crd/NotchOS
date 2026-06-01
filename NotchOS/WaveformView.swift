@@ -29,22 +29,28 @@ private struct WaveformBar: View {
     let color: Color
     let index: Int
 
-    @State private var animating = false
+    @State private var scale: CGFloat = 0.3
 
-    private var delay: Double { Double(index) * 0.12 }
-    private var targetScale: CGFloat {
-        [0.65, 0.9, 0.75, 0.85, 0.7][index % 5]
+    private var duration: Double {
+        [0.38, 0.28, 0.44, 0.32, 0.41][index % 5]
     }
 
     var body: some View {
         RoundedRectangle(cornerRadius: 1.5)
             .fill(color.opacity(0.9))
             .frame(width: 2.5)
-            .scaleEffect(y: animating ? targetScale : 0.3, anchor: .center)
-            .onAppear {
-                withAnimation(.easeInOut(duration: 0.45).repeatForever(autoreverses: true).delay(delay)) {
-                    animating = true
-                }
-            }
+            .scaleEffect(y: scale, anchor: .center)
+            .onAppear { animate() }
+    }
+
+    private func animate() {
+        let target = CGFloat.random(in: 0.3...1.0)
+        let dur = duration * Double.random(in: 0.8...1.2)
+        withAnimation(.easeInOut(duration: dur)) {
+            scale = target
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + dur) {
+            animate()
+        }
     }
 }
