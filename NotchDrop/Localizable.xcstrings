@@ -1604,6 +1604,7 @@
 
     },
     "Press Option to delete" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

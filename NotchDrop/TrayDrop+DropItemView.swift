@@ -30,8 +30,8 @@ struct DropItemView: View {
         }
         .contentShape(Rectangle())
         .transition(.asymmetric(
-            insertion: .opacity.combined(with: .scale),
-            removal: .movingParts.poof
+            insertion: .scale(scale: 0.8).combined(with: .opacity),
+            removal: .scale(scale: 0.5).combined(with: .opacity)
         ))
         .contentShape(Rectangle())
         .onHover { hover = $0 }

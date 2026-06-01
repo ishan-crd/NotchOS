@@ -43,8 +43,8 @@ struct TrayView: View {
 
     var panel: some View {
         RoundedRectangle(cornerRadius: vm.cornerRadius)
-            .strokeBorder(style: StrokeStyle(lineWidth: 4, dash: [10]))
-            .foregroundStyle(.white.opacity(0.1))
+            .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+            .foregroundStyle(.white.opacity(0.06))
             .background(loading)
             .overlay {
                 content
@@ -56,7 +56,7 @@ struct TrayView: View {
 
     var loading: some View {
         RoundedRectangle(cornerRadius: vm.cornerRadius)
-            .foregroundStyle(.white.opacity(0.1))
+            .foregroundStyle(.white.opacity(0.04))
             .conditionalEffect(
                 .repeat(
                     .glow(color: .blue, radius: 50),
@@ -67,24 +67,23 @@ struct TrayView: View {
     }
 
     var text: String {
-        [
-            String(
-                format: NSLocalizedString("Drag files here to keep them for %@", comment: ""),
-                storageTime
-            ),
-            "&",
-            NSLocalizedString("Press Option to delete", comment: ""),
-        ].joined(separator: " ")
+        String(
+            format: NSLocalizedString("Drag files here to keep them for %@", comment: ""),
+            storageTime
+        )
     }
 
     var content: some View {
         Group {
             if tvm.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "tray.and.arrow.down.fill")
+                VStack(spacing: 6) {
+                    Image(systemName: "tray.and.arrow.down")
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundStyle(.white.opacity(0.25))
                     Text(text)
                         .multilineTextAlignment(.center)
-                        .font(.system(.headline, design: .rounded))
+                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.25))
                 }
             } else {
                 HStack(spacing: 0) {
