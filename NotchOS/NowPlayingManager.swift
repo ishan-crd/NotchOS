@@ -20,6 +20,7 @@ class NowPlayingManager: ObservableObject {
     @Published var lastAlbum: String = ""
     @Published var lastArtwork: NSImage?
     @Published var hasLastPlayed: Bool = false
+    @Published var lastPlayedSource: String = "" // "spotify" or "music"
 
     @Published private(set) var spotifyAvailable: Bool = false
     @Published private(set) var musicAvailable: Bool = false
@@ -112,12 +113,16 @@ class NowPlayingManager: ObservableObject {
             musicAvailable = NSWorkspace.shared.runningApplications.contains { $0.bundleIdentifier == "com.apple.Music" }
         }
 
-        if cachedSpotifyRunning {
-            runScript(spotifyScript)
-        } else if cachedMusicRunning {
-            runScript(musicScript)
-        } else {
+        let isSpotify = cachedSpotifyRunning
+        let script = isSpotify ? spotifyScript : cachedMusicRunning ? musicScript : nil
+        guard let script else {
             clearNowPlaying()
+            return
+        }
+        if isSpotify { lastPlayedSource = "spotify" } else if cachedMusicRunning { lastPlayedSource = "music" }
+
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            self?.runScript(script)
         }
     }
 
@@ -126,10 +131,10 @@ class NowPlayingManager: ObservableObject {
         var error: NSDictionary?
         let result = script.executeAndReturnError(&error)
         guard error == nil, let output = result.stringValue, !output.isEmpty else {
-            clearNowPlaying()
+            DispatchQueue.main.async { self.clearNowPlaying() }
             return
         }
-        parseResult(output)
+        DispatchQueue.main.async { self.parseResult(output) }
     }
 
     private func parseResult(_ result: String) {
@@ -285,6 +290,14 @@ class NowPlayingManager: ObservableObject {
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.fetchOnMainThread()
+        }
+    }
+
+    func openLastPlayedApp() {
+        if lastPlayedSource == "spotify" {
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/Applications/Spotify.app"))
+        } else {
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Music.app"))
         }
     }
 

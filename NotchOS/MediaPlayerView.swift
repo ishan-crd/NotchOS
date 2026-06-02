@@ -52,7 +52,7 @@ struct MediaPlayerView: View {
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(.white.opacity(0.2))
                     Spacer(minLength: 0)
-                    Button { nowPlaying.togglePlayPause() } label: {
+                    Button { nowPlaying.openLastPlayedApp() } label: {
                         Image(systemName: "play.circle.fill")
                             .font(.system(size: 26))
                             .foregroundStyle(.white.opacity(0.5))
