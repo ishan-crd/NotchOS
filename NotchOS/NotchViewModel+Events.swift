@@ -130,7 +130,7 @@ extension NotchViewModel {
             }
         }
         autoCloseWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: workItem)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
     }
 
     func destroy() {
