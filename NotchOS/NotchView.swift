@@ -14,7 +14,7 @@ struct NotchView: View {
     @State var dropTargeting: Bool = false
 
     private var musicExpand: CGFloat {
-        nowPlaying.hasNowPlaying && vm.status == .closed ? 80 : 0
+        nowPlaying.hasNowPlaying && vm.status == .closed ? 72 : 0
     }
 
     var notchSize: CGSize {
@@ -139,15 +139,15 @@ struct NotchView: View {
                         }
                 }
             }
-            .frame(width: 22, height: 22)
-            .clipShape(RoundedRectangle(cornerRadius: 5))
+            .frame(width: 20, height: 20)
+            .clipShape(RoundedRectangle(cornerRadius: 4.5))
             .padding(.leading, 8)
 
             Spacer()
 
             // Waveform bars on the right
             WaveformView(isPlaying: nowPlaying.isPlaying, color: Color(nsColor: nowPlaying.dominantColor))
-                .frame(width: 22, height: 12)
+                .frame(width: 20, height: 10)
                 .padding(.trailing, 8)
         }
         .frame(width: notchSize.width, height: notchSize.height)

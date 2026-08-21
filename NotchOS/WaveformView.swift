@@ -16,8 +16,8 @@ struct WaveformView: View {
             WaveformBars(color: color)
                 .transition(.opacity)
         } else {
-            HStack(spacing: 2) {
-                ForEach(0..<6, id: \.self) { _ in
+            HStack(spacing: 1.5) {
+                ForEach(0..<5, id: \.self) { _ in
                     RoundedRectangle(cornerRadius: 0.5)
                         .fill(color.opacity(0.4))
                         .frame(width: 2, height: 2)
@@ -42,13 +42,13 @@ private struct WaveformBars: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 15.0)) { context in
             let t = context.date.timeIntervalSinceReferenceDate
-            HStack(spacing: 1.5) {
+            HStack(spacing: 1.4) {
                 ForEach(0..<5, id: \.self) { index in
                     let wave = abs(sin(t * Self.speeds[index] + Self.phases[index]))
                     let scale = 0.3 + (Self.peaks[index] - 0.3) * CGFloat(wave)
-                    RoundedRectangle(cornerRadius: 1.5)
+                    RoundedRectangle(cornerRadius: 1.2)  // bar
                         .fill(color.opacity(0.9))
-                        .frame(width: 2.5)
+                        .frame(width: 2.4)
                         .scaleEffect(y: scale, anchor: .center)
                 }
             }
