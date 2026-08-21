@@ -49,7 +49,11 @@ extension NotchViewModel {
         // when no state transition is possible.
         events.mouseLocation
             .sink { [weak self] mouseLocation in
-                guard let self, status != .opened else { return }
+                guard let self else { return }
+                if status == .opened {
+                    scheduleAutoCloseIfNeeded(mouseLocation: mouseLocation)
+                    return
+                }
                 let aboutToOpen = deviceNotchRect.insetBy(dx: inset, dy: inset).contains(mouseLocation)
                 if status == .closed, aboutToOpen { notchPop() }
                 if status == .popping, !aboutToOpen { notchClose() }
@@ -106,7 +110,31 @@ extension NotchViewModel {
             .store(in: &cancellables)
     }
 
+    /// Closes the opened panel after the cursor has stayed outside it for a
+    /// grace period; moving back inside cancels the pending close.
+    private func scheduleAutoCloseIfNeeded(mouseLocation: NSPoint) {
+        // A margin around the panel so grazing the edge doesn't count as leaving.
+        let hoverRect = notchOpenedRect.insetBy(dx: -8, dy: -8)
+        if hoverRect.contains(mouseLocation) {
+            cancelAutoClose()
+            return
+        }
+        guard autoCloseWorkItem == nil else { return }
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self, status == .opened else { return }
+            autoCloseWorkItem = nil
+            // Re-check on fire: the cursor may have come back without moving
+            // through an event we saw, or the panel may have resized under it.
+            if !notchOpenedRect.insetBy(dx: -8, dy: -8).contains(NSEvent.mouseLocation) {
+                notchClose()
+            }
+        }
+        autoCloseWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: workItem)
+    }
+
     func destroy() {
+        cancelAutoClose()
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
     }
