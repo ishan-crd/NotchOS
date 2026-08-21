@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-macOS%2014.5+-blue" alt="Platform">
+  <img src="https://img.shields.io/badge/platform-macOS%2013.0+-blue" alt="Platform">
   <img src="https://img.shields.io/badge/swift-5.0-orange" alt="Swift">
   <img src="https://img.shields.io/github/license/ishan-crd/NotchOS" alt="License">
 </p>
@@ -49,8 +49,8 @@ open NotchOS.xcodeproj
 
 ### Requirements
 
-- macOS 14.5+
-- Xcode 15.4+
+- macOS 13.0 or later (Calendar events require macOS 14.0+)
+- Xcode 16 or later
 - MacBook with a notch (works on all Macs, optimized for notch models)
 
 ## Usage

@@ -294,15 +294,17 @@ class NowPlayingManager: ObservableObject {
     }
 
     func openLastPlayedApp() {
-        if lastPlayedSource == "spotify" {
-            NSWorkspace.shared.open(URL(fileURLWithPath: "/Applications/Spotify.app"))
-        } else {
-            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Music.app"))
-        }
+        let bundleIdentifier = lastPlayedSource == "spotify" ? "com.spotify.client" : "com.apple.Music"
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) else { return }
+        NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
     }
 
+    /// AppleScript execution is synchronous and can block for seconds if the target
+    /// app is busy, so it never runs on the main thread.
     private func executeScript(_ source: String) {
-        var error: NSDictionary?
-        NSAppleScript(source: source)?.executeAndReturnError(&error)
+        DispatchQueue.global(qos: .userInitiated).async {
+            var error: NSDictionary?
+            NSAppleScript(source: source)?.executeAndReturnError(&error)
+        }
     }
 }

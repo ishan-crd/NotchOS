@@ -72,13 +72,15 @@ enum Language: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+/// Relaunches the app using `NSWorkspace`. `Process` is unavailable to sandboxed
+/// apps, so spawning `/usr/bin/open` is not an option here.
 private func relaunchApp() {
-    let path = Bundle.main.bundlePath
-    let task = Process()
-    task.launchPath = "/usr/bin/open"
-    task.arguments = ["-n", path]
-    task.launch()
-    exit(0)
+    let configuration = NSWorkspace.OpenConfiguration()
+    configuration.createsNewApplicationInstance = true
+
+    NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { _, _ in
+        DispatchQueue.main.async { NSApp.terminate(nil) }
+    }
 }
 
 private extension Bundle {

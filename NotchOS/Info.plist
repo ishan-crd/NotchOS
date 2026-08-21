@@ -4,6 +4,8 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSUIElement</key>
+	<true/>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>NotchOS needs access to control media playback and display now playing information.</string>
 	<key>NSCalendarsUsageDescription</key>

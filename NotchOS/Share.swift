@@ -43,7 +43,7 @@ class Share: NSObject, NSSharingServiceDelegate {
             service.delegate = self
             service.perform(withItems: files)
         } else {
-            // 弹出分享面板
+            // Present the system share sheet
             let picker = NSSharingServicePicker(items: files)
             if let view = NSApp.keyWindow?.contentView {
                 picker.show(relativeTo: view.bounds, of: view, preferredEdge: .minY)
