@@ -136,25 +136,52 @@ struct QuickNoteView: View {
     }
 
     func noteRow(_ note: QuickNoteManager.NoteItem) -> some View {
-        HStack(spacing: 8) {
-            Button {
-                withAnimation(vm.animation) {
-                    manager.toggleNote(note.id)
+        NoteRow(note: note, vm: vm, manager: manager)
+    }
+
+    private struct NoteRow: View {
+        let note: QuickNoteManager.NoteItem
+        let vm: NotchViewModel
+        @ObservedObject var manager: QuickNoteManager
+        @State private var hovering = false
+
+        var body: some View {
+            HStack(spacing: 8) {
+                Button {
+                    withAnimation(vm.animation) {
+                        manager.toggleNote(note.id)
+                    }
+                } label: {
+                    Image(systemName: note.isDone ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(note.isDone ? .green : .white.opacity(0.25))
                 }
-            } label: {
-                Image(systemName: note.isDone ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 14))
-                    .foregroundStyle(note.isDone ? .green : .white.opacity(0.25))
+                .buttonStyle(.plain)
+
+                Text(note.text)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(note.isDone ? .white.opacity(0.3) : .white.opacity(0.8))
+                    .strikethrough(note.isDone, color: .white.opacity(0.2))
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                if hovering {
+                    Button {
+                        withAnimation(vm.animation) {
+                            manager.deleteNote(note.id)
+                        }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.white.opacity(0.35))
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.opacity)
+                }
             }
-            .buttonStyle(.plain)
-
-            Text(note.text)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(note.isDone ? .white.opacity(0.3) : .white.opacity(0.8))
-                .strikethrough(note.isDone, color: .white.opacity(0.2))
-                .lineLimit(1)
-
-            Spacer(minLength: 0)
+            .contentShape(Rectangle())
+            .onHover { hovering = $0 }
         }
     }
 }

@@ -41,6 +41,12 @@ class NowPlayingManager: ObservableObject {
     private var lastArtworkURL: String = ""
     private var pollTimer: Timer?
 
+    // Hide the closed-notch music pill after playback has been paused this long.
+    // `idleHidden` keeps the poll from re-showing it until playback resumes.
+    private let idleHideDelay: TimeInterval = 60
+    private var idleHideTimer: Timer?
+    private var idleHidden = false
+
     // Pre-compiled scripts (compiled once, executed many times)
     private var spotifyScript: NSAppleScript?
     private var musicScript: NSAppleScript?
@@ -159,12 +165,19 @@ class NowPlayingManager: ObservableObject {
         let artworkURL = parts[3]
         let newIsPlaying = parts[4].lowercased().contains("playing")
 
+        // After an idle hide, stay hidden until playback actually resumes.
+        if idleHidden {
+            guard newIsPlaying else { return }
+            idleHidden = false
+        }
+
         // Only update published properties when values actually change
         if title != newTitle { title = newTitle }
         if artist != newArtist { artist = newArtist }
         if album != newAlbum { album = newAlbum }
         if isPlaying != newIsPlaying { isPlaying = newIsPlaying }
         if !hasNowPlaying { hasNowPlaying = true }
+        updateIdleHideTimer()
 
         if parts.count >= 7 {
             let newPos = Double(parts[5].trimmingCharacters(in: .whitespaces)) ?? 0
@@ -250,7 +263,24 @@ class NowPlayingManager: ObservableObject {
         return NSColor(hue: h, saturation: s, brightness: b, alpha: 1)
     }
 
+    /// While paused, arm a one-shot timer that dismisses the now-playing state
+    /// after `idleHideDelay`; resuming playback cancels it.
+    private func updateIdleHideTimer() {
+        if isPlaying {
+            idleHideTimer?.invalidate()
+            idleHideTimer = nil
+        } else if idleHideTimer == nil {
+            idleHideTimer = Timer.scheduledTimer(withTimeInterval: idleHideDelay, repeats: false) { [weak self] _ in
+                guard let self, !isPlaying else { return }
+                idleHidden = true
+                clearNowPlaying()
+            }
+        }
+    }
+
     private func clearNowPlaying() {
+        idleHideTimer?.invalidate()
+        idleHideTimer = nil
         guard hasNowPlaying else { return }
         // Save last played before clearing
         if !title.isEmpty {
