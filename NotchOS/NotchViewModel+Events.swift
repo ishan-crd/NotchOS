@@ -55,7 +55,10 @@ extension NotchViewModel {
                     return
                 }
                 let aboutToOpen = deviceNotchRect.insetBy(dx: inset, dy: inset).contains(mouseLocation)
-                if status == .closed, aboutToOpen { notchPop() }
+                if status == .closed, aboutToOpen {
+                    notchPop()
+                    scheduleHoverOpen()
+                }
                 if status == .popping, !aboutToOpen { notchClose() }
             }
             .store(in: &cancellables)
@@ -110,6 +113,22 @@ extension NotchViewModel {
             .store(in: &cancellables)
     }
 
+    /// Opens the panel after the cursor has rested on the closed notch for a
+    /// beat; leaving the notch (which closes the pop) cancels it.
+    private func scheduleHoverOpen() {
+        guard hoverOpenWorkItem == nil else { return }
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            hoverOpenWorkItem = nil
+            guard status == .popping,
+                  deviceNotchRect.insetBy(dx: inset, dy: inset).contains(NSEvent.mouseLocation)
+            else { return }
+            notchOpen(.click)
+        }
+        hoverOpenWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
+    }
+
     /// Closes the opened panel after the cursor has stayed outside it for a
     /// grace period; moving back inside cancels the pending close.
     private func scheduleAutoCloseIfNeeded(mouseLocation: NSPoint) {
@@ -130,11 +149,12 @@ extension NotchViewModel {
             }
         }
         autoCloseWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: workItem)
     }
 
     func destroy() {
         cancelAutoClose()
+        cancelHoverOpen()
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
     }

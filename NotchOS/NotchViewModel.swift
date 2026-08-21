@@ -141,16 +141,24 @@ class NotchViewModel: NSObject, ObservableObject {
 
     let hapticSender = PassthroughSubject<Void, Never>()
 
-    // Pending auto-close scheduled when the cursor leaves the opened panel.
+    // Pending auto-close scheduled when the cursor leaves the opened panel,
+    // and pending hover-open scheduled while the cursor rests on the closed notch.
     var autoCloseWorkItem: DispatchWorkItem?
+    var hoverOpenWorkItem: DispatchWorkItem?
 
     func cancelAutoClose() {
         autoCloseWorkItem?.cancel()
         autoCloseWorkItem = nil
     }
 
+    func cancelHoverOpen() {
+        hoverOpenWorkItem?.cancel()
+        hoverOpenWorkItem = nil
+    }
+
     func notchOpen(_ reason: OpenReason) {
         cancelAutoClose()
+        cancelHoverOpen()
         openReason = reason
         status = .opened
         contentType = .normal
@@ -160,6 +168,7 @@ class NotchViewModel: NSObject, ObservableObject {
 
     func notchClose() {
         cancelAutoClose()
+        cancelHoverOpen()
         openReason = .unknown
         status = .closed
         contentType = .normal
