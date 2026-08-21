@@ -33,7 +33,7 @@ class NotchViewModel: NSObject, ObservableObject {
 
     // Drives the notch shape growing/shrinking between closed and opened.
     // No bounce, so the notch reads as smoothly expanding rather than popping.
-    let expandAnimation: Animation = .spring(response: 0.4, dampingFraction: 0.95)
+    let expandAnimation: Animation = .spring(response: 0.75, dampingFraction: 0.95)
     @Published var contentWidth: CGFloat = 600
     let fixedContentWidth: CGFloat = 600
     var notchOpenedSize: CGSize {

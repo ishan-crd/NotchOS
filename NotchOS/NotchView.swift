@@ -70,8 +70,8 @@ struct NotchView: View {
                 .asymmetric(
                     insertion: .opacity
                         .combined(with: .scale(scale: 0.98, anchor: .top))
-                        .animation(.easeOut(duration: 0.22).delay(0.16)),
-                    removal: .opacity.animation(.easeIn(duration: 0.08))
+                        .animation(.easeOut(duration: 0.35).delay(0.4)),
+                    removal: .opacity.animation(.easeIn(duration: 0.12))
                 )
             )
         }
