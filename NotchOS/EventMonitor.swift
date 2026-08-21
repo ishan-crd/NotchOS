@@ -1,3 +1,10 @@
+//
+//  EventMonitor.swift
+//  NotchOS
+//
+//  Copyright © 2026 Ishan Gupta. MIT License.
+//
+
 import AppKit
 
 public class EventMonitor {

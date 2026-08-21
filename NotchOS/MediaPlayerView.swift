@@ -1,3 +1,10 @@
+//
+//  MediaPlayerView.swift
+//  NotchOS
+//
+//  Copyright © 2026 Ishan Gupta. MIT License.
+//
+
 import SwiftUI
 
 struct MediaPlayerView: View {

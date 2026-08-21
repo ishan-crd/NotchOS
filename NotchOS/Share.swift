@@ -2,8 +2,7 @@
 //  Share.swift
 //  NotchOS
 //
-//  Created by 秋星桥 on 2024/7/8.
-//  Last Modified by 冷月 on 2025/5/5.
+//  Copyright © 2026 Ishan Gupta. MIT License.
 //
 
 import Cocoa

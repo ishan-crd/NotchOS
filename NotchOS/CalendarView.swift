@@ -1,3 +1,10 @@
+//
+//  CalendarView.swift
+//  NotchOS
+//
+//  Copyright © 2026 Ishan Gupta. MIT License.
+//
+
 import EventKit
 import SwiftUI
 
