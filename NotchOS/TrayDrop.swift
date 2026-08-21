@@ -30,9 +30,7 @@ class TrayDrop: ObservableObject {
             case .years:
                 TimeInterval(customStorageTime) * 60 * 60 * 24 * 365
             }
-            let ans = selectedFileStorageTime.toTimeInterval(customTime: customTime)
-            print("[*] using interval \(ans) to keep files")
-            return ans
+            return selectedFileStorageTime.toTimeInterval(customTime: customTime)
         }
         .receive(on: DispatchQueue.main)
         .sink { [weak self] output in

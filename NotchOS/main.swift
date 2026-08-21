@@ -7,9 +7,6 @@
 
 import AppKit
 
-let productPage = URL(string: "https://github.com/ishan-creates/NotchOS")!
-let sponsorPage = URL(string: "https://github.com/sponsors/Lakr233")!
-
 let bundleIdentifier = Bundle.main.bundleIdentifier!
 let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""))"
 
