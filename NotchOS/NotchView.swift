@@ -63,20 +63,16 @@ struct NotchView: View {
                     .zIndex(1)
                 }
             }
-            // The notch shape does the expanding; the content just fades in once
-            // the shape has grown, so the whole thing reads as one surface
-            // smoothly increasing in size rather than a panel popping open.
+            // Content grows out of the notch: top-anchored scale + fade, the same
+            // transition boring.notch uses for its open content.
             .transition(
-                .asymmetric(
-                    insertion: .opacity
-                        .combined(with: .scale(scale: 0.98, anchor: .top))
-                        .animation(.easeOut(duration: 0.35).delay(0.4)),
-                    removal: .opacity.animation(.easeIn(duration: 0.12))
-                )
+                .scale(scale: 0.8, anchor: .top)
+                    .combined(with: .opacity)
+                    .animation(.smooth(duration: 0.35))
             )
         }
         .background(dragDetector)
-        .animation(vm.expandAnimation, value: vm.status)
+        .animation(vm.status == .opened ? vm.openAnimation : vm.closeAnimation, value: vm.status)
         .preferredColorScheme(.dark)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }

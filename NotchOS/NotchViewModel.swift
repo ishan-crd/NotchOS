@@ -31,9 +31,10 @@ class NotchViewModel: NSObject, ObservableObject {
         blendDuration: 0.125
     )
 
-    // Drives the notch shape growing/shrinking between closed and opened.
-    // No bounce, so the notch reads as smoothly expanding rather than popping.
-    let expandAnimation: Animation = .spring(response: 0.75, dampingFraction: 0.95)
+    // Open/close springs matching boring.notch: a soft overshoot while
+    // expanding, a clean bounce-free settle while closing.
+    let openAnimation: Animation = .spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
+    let closeAnimation: Animation = .spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
     @Published var contentWidth: CGFloat = 600
     let fixedContentWidth: CGFloat = 600
     var notchOpenedSize: CGSize {
