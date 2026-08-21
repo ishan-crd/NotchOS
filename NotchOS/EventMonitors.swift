@@ -13,12 +13,10 @@ class EventMonitors {
 
     private var mouseMoveEvent: EventMonitor!
     private var mouseDownEvent: EventMonitor!
-    private var mouseDraggingFileEvent: EventMonitor!
     private var optionKeyPressEvent: EventMonitor!
 
     let mouseLocation: CurrentValueSubject<NSPoint, Never> = .init(.zero)
     let mouseDown: PassthroughSubject<Void, Never> = .init()
-    let mouseDraggingFile: PassthroughSubject<Void, Never> = .init()
     let optionKeyPress: CurrentValueSubject<Bool, Never> = .init(false)
 
     private init() {
@@ -34,12 +32,6 @@ class EventMonitors {
             mouseDown.send()
         }
         mouseDownEvent.start()
-
-        mouseDraggingFileEvent = EventMonitor(mask: .leftMouseDragged) { [weak self] _ in
-            guard let self else { return }
-            mouseDraggingFile.send()
-        }
-        mouseDraggingFileEvent.start()
 
         optionKeyPressEvent = EventMonitor(mask: .flagsChanged) { [weak self] event in
             guard let self else { return }
