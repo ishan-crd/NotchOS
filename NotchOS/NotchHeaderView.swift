@@ -2,7 +2,7 @@
 //  NotchHeaderView.swift
 //  NotchOS
 //
-//  Created by 秋星桥 on 2024/7/7.
+//  Copyright © 2026 Ishan Gupta. MIT License.
 //
 
 import SwiftUI

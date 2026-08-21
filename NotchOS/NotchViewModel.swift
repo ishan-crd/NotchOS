@@ -1,3 +1,10 @@
+//
+//  NotchViewModel.swift
+//  NotchOS
+//
+//  Copyright © 2026 Ishan Gupta. MIT License.
+//
+
 import Cocoa
 import Combine
 import Foundation

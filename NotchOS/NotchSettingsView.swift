@@ -2,7 +2,7 @@
 //  NotchSettingsView.swift
 //  NotchOS
 //
-//  Created by 曹丁杰 on 2024/7/29.
+//  Copyright © 2026 Ishan Gupta. MIT License.
 //
 
 import LaunchAtLogin

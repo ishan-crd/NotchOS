@@ -2,7 +2,7 @@
 //  NotchMenuView.swift
 //  NotchOS
 //
-//  Created by 秋星桥 on 2024/7/11.
+//  Copyright © 2026 Ishan Gupta. MIT License.
 //
 
 import ColorfulX
