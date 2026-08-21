@@ -46,9 +46,15 @@ class QuickNoteManager: ObservableObject {
         notes.removeAll { $0.id == id }
     }
 
+    // Serial queue keeps writes ordered while staying off the main thread.
+    private let saveQueue = DispatchQueue(label: "quicknote.save", qos: .utility)
+
     private func save() {
         guard let data = try? JSONEncoder().encode(notes) else { return }
-        try? data.write(to: storageURL, options: .atomic)
+        let url = storageURL
+        saveQueue.async {
+            try? data.write(to: url, options: .atomic)
+        }
     }
 
     private func load() {

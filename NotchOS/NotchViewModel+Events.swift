@@ -44,11 +44,12 @@ extension NotchViewModel {
             }
             .store(in: &cancellables)
 
+        // NSEvent monitor callbacks already arrive on the main thread; this fires on
+        // every mouse move, so avoid an extra async hop per event and bail out early
+        // when no state transition is possible.
         events.mouseLocation
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] mouseLocation in
-                guard let self else { return }
-                let mouseLocation: NSPoint = NSEvent.mouseLocation
+                guard let self, status != .opened else { return }
                 let aboutToOpen = deviceNotchRect.insetBy(dx: inset, dy: inset).contains(mouseLocation)
                 if status == .closed, aboutToOpen { notchPop() }
                 if status == .popping, !aboutToOpen { notchClose() }

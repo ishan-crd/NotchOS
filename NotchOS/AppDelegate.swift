@@ -28,11 +28,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         isLaunchedAtLogin = LaunchAtLogin.wasLaunchedAtLogin
 
         _ = EventMonitors.shared
+        // Keeps the panel key while open. Stale-instance cleanup happens once at
+        // launch in main.swift, so no per-tick disk I/O is needed here.
         let timer = Timer.scheduledTimer(
             withTimeInterval: 1,
             repeats: true
         ) { [weak self] _ in
-            self?.determineIfProcessIdentifierMatches()
             self?.makeKeyAndVisibleIfNeeded()
         }
         self.timer = timer
@@ -50,27 +51,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return .main
     }
 
+    private var lastScreenSignature: String?
+
     @objc func rebuildApplicationWindows() {
         defer { isFirstOpen = false }
+        guard let mainScreen = findScreenFitsOurNeeds() else {
+            mainWindowController?.destroy()
+            mainWindowController = nil
+            lastScreenSignature = nil
+            return
+        }
+        // macOS fires didChangeScreenParametersNotification for many unrelated
+        // reasons; only tear down and rebuild the window when the target screen
+        // actually changed, so the notch doesn't vanish mid-use.
+        let signature = "\(mainScreen.frame)|\(mainScreen.notchSize)"
+        if mainWindowController != nil, signature == lastScreenSignature { return }
+        lastScreenSignature = signature
+
         if let mainWindowController {
             mainWindowController.destroy()
         }
         mainWindowController = nil
-        guard let mainScreen = findScreenFitsOurNeeds() else { return }
         mainWindowController = .init(screen: mainScreen)
         if isFirstOpen, !isLaunchedAtLogin {
             mainWindowController?.openAfterCreate = true
-        }
-    }
-
-    func determineIfProcessIdentifierMatches() {
-        let pid = String(NSRunningApplication.current.processIdentifier)
-        let content = (try? String(contentsOf: pidFile)) ?? ""
-        guard pid.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            == content.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        else {
-            NSApp.terminate(nil)
-            return
         }
     }
 

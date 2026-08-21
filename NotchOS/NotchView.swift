@@ -165,42 +165,37 @@ struct NotchView: View {
                 bottomLeadingRadius: notchCornerRadius,
                 bottomTrailingRadius: notchCornerRadius
             ))
-            .overlay {
-                ZStack(alignment: .topTrailing) {
-                    Rectangle()
-                        .frame(width: notchCornerRadius, height: notchCornerRadius)
-                        .foregroundStyle(.black)
-                    Rectangle()
-                        .clipShape(.rect(topTrailingRadius: notchCornerRadius))
-                        .foregroundStyle(.white)
-                        .frame(
-                            width: notchCornerRadius + vm.spacing,
-                            height: notchCornerRadius + vm.spacing
-                        )
-                        .blendMode(.destinationOut)
-                }
-                .compositingGroup()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .offset(x: -notchCornerRadius - vm.spacing + 1, y: -0.5)
+            .overlay(alignment: .topLeading) {
+                NotchFillet()
+                    .fill(.black)
+                    .frame(width: notchCornerRadius, height: notchCornerRadius)
+                    .offset(x: -notchCornerRadius + 0.5, y: -0.5)
             }
-            .overlay {
-                ZStack(alignment: .topLeading) {
-                    Rectangle()
-                        .frame(width: notchCornerRadius, height: notchCornerRadius)
-                        .foregroundStyle(.black)
-                    Rectangle()
-                        .clipShape(.rect(topLeadingRadius: notchCornerRadius))
-                        .foregroundStyle(.white)
-                        .frame(
-                            width: notchCornerRadius + vm.spacing,
-                            height: notchCornerRadius + vm.spacing
-                        )
-                        .blendMode(.destinationOut)
-                }
-                .compositingGroup()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .offset(x: notchCornerRadius + vm.spacing - 1, y: -0.5)
+            .overlay(alignment: .topTrailing) {
+                NotchFillet()
+                    .fill(.black)
+                    .scaleEffect(x: -1)
+                    .frame(width: notchCornerRadius, height: notchCornerRadius)
+                    .offset(x: notchCornerRadius - 0.5, y: -0.5)
             }
+    }
+
+    /// The concave "flare" that joins the notch's vertical edge to the menu bar.
+    /// Drawn as a plain filled path — no blend modes, which composite unreliably
+    /// inside masks on some macOS versions.
+    private struct NotchFillet: Shape {
+        func path(in rect: CGRect) -> Path {
+            let r = min(rect.width, rect.height)
+            var p = Path()
+            p.move(to: .zero)
+            p.addArc(
+                center: CGPoint(x: 0, y: r), radius: r,
+                startAngle: .degrees(-90), endAngle: .degrees(0), clockwise: false
+            )
+            p.addLine(to: CGPoint(x: r, y: 0))
+            p.closeSubpath()
+            return p
+        }
     }
 
     @ViewBuilder

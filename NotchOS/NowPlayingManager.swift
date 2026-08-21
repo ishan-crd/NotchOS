@@ -29,7 +29,7 @@ class NowPlayingManager: ObservableObject {
     var cachedSpotifyRunning: Bool { spotifyAvailable }
     var cachedMusicRunning: Bool { musicAvailable }
 
-    private var artworkCache: [String: NSImage] = [:]
+    private var artworkCache: [String: (image: NSImage, color: NSColor)] = [:]
     private let maxCacheSize = 10
     private var lastArtworkURL: String = ""
     private var pollTimer: Timer?
@@ -177,25 +177,31 @@ class NowPlayingManager: ObservableObject {
         guard urlString != "none", !urlString.isEmpty, let url = URL(string: urlString) else { return }
 
         if let cached = artworkCache[urlString] {
-            if artwork !== cached {
-                artwork = cached
-                dominantColor = Self.extractDominantColor(from: cached)
+            if artwork !== cached.image {
+                artwork = cached.image
+                dominantColor = cached.color
             }
             return
         }
 
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            // Decode and extract the dominant color on the URLSession queue so the
+            // main thread only does the (cheap) property assignments.
             guard let self, let data, let image = NSImage(data: data) else { return }
+            let color = Self.extractDominantColor(from: image)
             DispatchQueue.main.async {
                 if self.artworkCache.count >= self.maxCacheSize {
                     self.artworkCache.removeAll()
                 }
-                self.artworkCache[urlString] = image
+                self.artworkCache[urlString] = (image, color)
                 self.artwork = image
-                self.dominantColor = Self.extractDominantColor(from: image)
+                self.dominantColor = color
             }
         }.resume()
     }
+
+    // CIContext setup is expensive — create once and reuse.
+    private static let ciContext = CIContext()
 
     private static func extractDominantColor(from image: NSImage) -> NSColor {
         guard let tiffData = image.tiffRepresentation,
@@ -219,7 +225,7 @@ class NowPlayingManager: ObservableObject {
         else { return .white }
 
         var pixel = [UInt8](repeating: 0, count: 4)
-        CIContext().render(output, toBitmap: &pixel, rowBytes: 4,
+        ciContext.render(output, toBitmap: &pixel, rowBytes: 4,
                            bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
                            format: .RGBA8, colorSpace: CGColorSpaceCreateDeviceRGB())
 

@@ -6,12 +6,8 @@ struct WaveformView: View {
 
     var body: some View {
         if isPlaying {
-            HStack(spacing: 1.5) {
-                ForEach(0..<5, id: \.self) { index in
-                    WaveformBar(color: color, index: index)
-                }
-            }
-            .transition(.opacity)
+            WaveformBars(color: color)
+                .transition(.opacity)
         } else {
             HStack(spacing: 2) {
                 ForEach(0..<6, id: \.self) { _ in
@@ -25,32 +21,30 @@ struct WaveformView: View {
     }
 }
 
-private struct WaveformBar: View {
+/// All five bars are driven by one 20 fps timeline — a single view invalidation
+/// per tick instead of five continuous display-rate animations, which keeps the
+/// always-visible closed-notch waveform cheap on CPU.
+private struct WaveformBars: View {
     let color: Color
-    let index: Int
 
-    @State private var scale: CGFloat = 0.3
-
-    private var duration: Double {
-        [0.38, 0.28, 0.44, 0.32, 0.41][index % 5]
-    }
+    // Per-bar variation so the bars stay out of phase and read as organic.
+    private static let speeds: [Double] = [2.6, 3.6, 2.3, 3.1, 2.4]
+    private static let phases: [Double] = [0.0, 1.7, 0.9, 2.6, 1.3]
+    private static let peaks: [CGFloat] = [1.0, 0.72, 0.9, 0.6, 0.82]
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 1.5)
-            .fill(color.opacity(0.9))
-            .frame(width: 2.5)
-            .scaleEffect(y: scale, anchor: .center)
-            .onAppear { animate() }
-    }
-
-    private func animate() {
-        let target = CGFloat.random(in: 0.3...1.0)
-        let dur = duration * Double.random(in: 0.8...1.2)
-        withAnimation(.easeInOut(duration: dur)) {
-            scale = target
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + dur) {
-            animate()
+        TimelineView(.animation(minimumInterval: 1.0 / 15.0)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
+            HStack(spacing: 1.5) {
+                ForEach(0..<5, id: \.self) { index in
+                    let wave = abs(sin(t * Self.speeds[index] + Self.phases[index]))
+                    let scale = 0.3 + (Self.peaks[index] - 0.3) * CGFloat(wave)
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .fill(color.opacity(0.9))
+                        .frame(width: 2.5)
+                        .scaleEffect(y: scale, anchor: .center)
+                }
+            }
         }
     }
 }

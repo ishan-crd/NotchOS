@@ -8,7 +8,6 @@
 import AppKit
 
 let bundleIdentifier = Bundle.main.bundleIdentifier!
-let appVersion = "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""))"
 
 private let availableDirectories = FileManager
     .default
