@@ -75,31 +75,60 @@ private struct OnboardingRootView: View {
 
     var body: some View {
         ZStack {
-            // Native "liquid glass": the desktop shows through, shaped by
-            // glare, a fresnel rim and a touch of dispersion.
-            LiquidGlassPane(cornerRadius: 16)
+            // The desktop blurs through the transparent window.
+            GlassBackground(strength: 0.45)
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
 
-            VStack(spacing: 0) {
-                ZStack {
-                    switch page {
-                    case 0: WelcomePage()
-                        .transition(pageTransition)
-                    case 1: FeaturesPage()
-                        .transition(pageTransition)
-                    case 2: PermissionsPage()
-                        .transition(pageTransition)
-                    default: ReadyPage()
-                        .transition(pageTransition)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Everything above is a single slab of glass: the shader refracts
+            // and disperses it at the rim and lights it with fresnel + glare.
+            ZStack {
+                // Faint body tint so the slab has something to refract and
+                // keeps text legible over busy desktops.
+                RadialGradient(
+                    colors: [.black.opacity(0.30), .black.opacity(0.10)],
+                    center: .center, startRadius: 40, endRadius: 340
+                )
 
-                controls
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 26)
+                VStack(spacing: 0) {
+                    ZStack {
+                        switch page {
+                        case 0: WelcomePage()
+                            .transition(pageTransition)
+                        case 1: FeaturesPage()
+                            .transition(pageTransition)
+                        case 2: PermissionsPage()
+                            .transition(pageTransition)
+                        default: ReadyPage()
+                            .transition(pageTransition)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    controls
+                        .padding(.horizontal, 32)
+                        .padding(.bottom, 26)
+                }
             }
+            .modifier(
+                LiquidGlassEffect(
+                    size: CGSize(width: 560, height: 440),
+                    cornerRadius: 22,
+                    roundness: 4,
+                    thickness: 26,
+                    refFactor: 1.4,
+                    dispersion: 7,
+                    fresnelRange: 30,
+                    fresnelHardness: 0.20,
+                    fresnelFactor: 0.20,
+                    glareRange: 30,
+                    glareHardness: 0.20,
+                    glareFactor: 0.90,
+                    glareConvergence: 0.50,
+                    glareOppositeFactor: 0.80,
+                    glareAngle: -.pi / 4
+                )
+            )
         }
         .frame(width: 560, height: 440)
     }
@@ -598,76 +627,52 @@ private struct GlassBackground: NSViewRepresentable {
     }
 }
 
-/// A pane of liquid glass: faint frost, a -45° glare that pools along the
-/// leading and opposite edges, a fresnel rim that brightens toward the border,
-/// and a whisper of chromatic dispersion on that rim.
-private struct LiquidGlassPane: View {
-    var cornerRadius: CGFloat = 0
-    /// Fraction of the surface the glare reaches in from an edge (glareRange).
-    private let glareRange: CGFloat = 0.30
+/// Applies the Metal liquid-glass optics, with a gradient fallback pre-14.
+private struct LiquidGlassEffect: ViewModifier {
+    let size: CGSize
+    let cornerRadius: CGFloat
+    let roundness: CGFloat
+    let thickness: CGFloat
+    let refFactor: CGFloat
+    let dispersion: CGFloat
+    let fresnelRange: CGFloat
+    let fresnelHardness: CGFloat
+    let fresnelFactor: CGFloat
+    let glareRange: CGFloat
+    let glareHardness: CGFloat
+    let glareFactor: CGFloat
+    let glareConvergence: CGFloat
+    let glareOppositeFactor: CGFloat
+    let glareAngle: CGFloat
 
-    var body: some View {
-        ZStack {
-            GlassBackground(strength: 0.45)
-
-            // Contrast layer: Apple's glass darkens slightly under content so
-            // text stays legible over busy desktops. Kept low and centre-biased
-            // so the edges read as clear glass.
-            RadialGradient(
-                colors: [.black.opacity(0.28), .black.opacity(0.10)],
-                center: .center, startRadius: 40, endRadius: 340
+    func body(content: Content) -> some View {
+        if #available(macOS 14.0, *), size.width > 0, size.height > 0 {
+            content.layerEffect(
+                ShaderLibrary.liquidGlass(
+                    .float2(size),
+                    .float(cornerRadius),
+                    .float(roundness),
+                    .float(thickness),
+                    .float(refFactor),
+                    .float(dispersion),
+                    .float(fresnelRange),
+                    .float(fresnelHardness),
+                    .float(fresnelFactor),
+                    .float(glareRange),
+                    .float(glareHardness),
+                    .float(glareFactor),
+                    .float(glareConvergence),
+                    .float(glareOppositeFactor),
+                    .float(glareAngle)
+                ),
+                maxSampleOffset: CGSize(width: 80, height: 80)
             )
-
-            // Glare, angled -45°: strong on the leading edge, weaker on the
-            // opposite one (glareFactor / glareOppositeFactor).
-            LinearGradient(
-                stops: [
-                    .init(color: .white.opacity(0.30), location: 0),
-                    .init(color: .white.opacity(0.05), location: glareRange),
-                    .init(color: .clear, location: 0.55),
-                    .init(color: .white.opacity(0.04), location: 1 - glareRange),
-                    .init(color: .white.opacity(0.16), location: 1),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+        } else {
+            content.overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(specularEdge, lineWidth: 1)
             )
-            .blendMode(.plusLighter)
-
-            // Fresnel: the rim brightens as the surface turns away from view.
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            .white.opacity(0.55),
-                            .white.opacity(0.12),
-                            .white.opacity(0.08),
-                            .white.opacity(0.38),
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-                .blendMode(.plusLighter)
-
-            // Dispersion: light splitting into cool/warm fringes on the rim.
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.55, green: 0.85, blue: 1).opacity(0.30),
-                            .clear,
-                            Color(red: 1, green: 0.65, blue: 0.85).opacity(0.22),
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 1.5
-                )
-                .blur(radius: 1.4)
-                .blendMode(.plusLighter)
         }
-        .compositingGroup()
     }
 }
 
