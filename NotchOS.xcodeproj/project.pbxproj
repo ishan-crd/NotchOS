@@ -17,6 +17,10 @@
 		504381882C3A86EC000ED325 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504381872C3A86EC000ED325 /* Assets.xcassets */; };
 		504381932C3A8755000ED325 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504381922C3A8755000ED325 /* main.swift */; };
 		504381992C3A8893000ED325 /* NotchWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504381982C3A8893000ED325 /* NotchWindow.swift */; };
+		B20000012D4C000000000001 /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000012D4C000000000001 /* BatteryMonitor.swift */; };
+		B20000012D4C000000000002 /* MarqueeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000012D4C000000000002 /* MarqueeText.swift */; };
+		B20000012D4C000000000003 /* QuickLookPreviewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000012D4C000000000003 /* QuickLookPreviewer.swift */; };
+		B20000012D4C000000000004 /* Onboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000012D4C000000000004 /* Onboarding.swift */; };
 		5043819B2C3A8A06000ED325 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5043819A2C3A8A06000ED325 /* AppDelegate.swift */; };
 		5043819E2C3A8ACA000ED325 /* ColorfulX in Frameworks */ = {isa = PBXBuildFile; productRef = 5043819D2C3A8ACA000ED325 /* ColorfulX */; };
 		504381A02C3A8BA1000ED325 /* NotchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5043819F2C3A8BA1000ED325 /* NotchView.swift */; };
@@ -66,6 +70,10 @@
 		5043818C2C3A86EC000ED325 /* NotchOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NotchOS.entitlements; sourceTree = "<group>"; };
 		504381922C3A8755000ED325 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		504381982C3A8893000ED325 /* NotchWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindow.swift; sourceTree = "<group>"; };
+		B10000012D4C000000000001 /* BatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryMonitor.swift; sourceTree = "<group>"; };
+		B10000012D4C000000000002 /* MarqueeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeText.swift; sourceTree = "<group>"; };
+		B10000012D4C000000000003 /* QuickLookPreviewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookPreviewer.swift; sourceTree = "<group>"; };
+		B10000012D4C000000000004 /* Onboarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Onboarding.swift; sourceTree = "<group>"; };
 		5043819A2C3A8A06000ED325 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		5043819F2C3A8BA1000ED325 /* NotchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchView.swift; sourceTree = "<group>"; };
 		504381A12C3A8BE0000ED325 /* Ext+NSScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Ext+NSScreen.swift"; sourceTree = "<group>"; };
@@ -146,6 +154,10 @@
 				5043819A2C3A8A06000ED325 /* AppDelegate.swift */,
 				501F0E8B2C59E6BD00F0113C /* Language.swift */,
 				504381982C3A8893000ED325 /* NotchWindow.swift */,
+				B10000012D4C000000000001 /* BatteryMonitor.swift */,
+				B10000012D4C000000000002 /* MarqueeText.swift */,
+				B10000012D4C000000000003 /* QuickLookPreviewer.swift */,
+				B10000012D4C000000000004 /* Onboarding.swift */,
 				504381A32C3A8C7E000ED325 /* NotchWindowController.swift */,
 				5043819F2C3A8BA1000ED325 /* NotchView.swift */,
 				504381B02C3AE0B6000ED325 /* NotchHeaderView.swift */,
@@ -276,6 +288,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				504381992C3A8893000ED325 /* NotchWindow.swift in Sources */,
+				B20000012D4C000000000001 /* BatteryMonitor.swift in Sources */,
+				B20000012D4C000000000002 /* MarqueeText.swift in Sources */,
+				B20000012D4C000000000003 /* QuickLookPreviewer.swift in Sources */,
+				B20000012D4C000000000004 /* Onboarding.swift in Sources */,
 				5044EEA22C3B126F00071C5C /* TrayDrop+DropItemView.swift in Sources */,
 				504381AF2C3ADFF2000ED325 /* NotchContentView.swift in Sources */,
 				504381A02C3A8BA1000ED325 /* NotchView.swift in Sources */,

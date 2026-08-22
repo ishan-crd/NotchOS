@@ -11,8 +11,15 @@ import SwiftUI
 struct NotchSettingsView: View {
     @StateObject var vm: NotchViewModel
     @StateObject var tvm: TrayDrop = .shared
+    @ObservedObject var calendarManager = CalendarManager.shared
 
     var body: some View {
+        ScrollView(showsIndicators: false) {
+            settingsBody
+        }
+    }
+
+    var settingsBody: some View {
         VStack(spacing: 10) {
             // MARK: - General
             settingsGroup {
@@ -84,6 +91,46 @@ struct NotchSettingsView: View {
                 }
             }
 
+            // MARK: - Calendar
+            settingsGroup {
+                settingsRow("Show Reminders") {
+                    Toggle(String(), isOn: $calendarManager.showReminders)
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                        .labelsHidden()
+                }
+
+                if !calendarManager.availableCalendars.isEmpty {
+                    Divider().opacity(0.15)
+
+                    settingsRow("Calendars") {
+                        Menu {
+                            ForEach(calendarManager.availableCalendars, id: \.calendarIdentifier) { calendar in
+                                Button {
+                                    if calendarManager.excludedCalendarIDs.contains(calendar.calendarIdentifier) {
+                                        calendarManager.excludedCalendarIDs.remove(calendar.calendarIdentifier)
+                                    } else {
+                                        calendarManager.excludedCalendarIDs.insert(calendar.calendarIdentifier)
+                                    }
+                                } label: {
+                                    HStack {
+                                        if !calendarManager.excludedCalendarIDs.contains(calendar.calendarIdentifier) {
+                                            Image(systemName: "checkmark")
+                                        }
+                                        Text(calendar.title)
+                                    }
+                                }
+                            }
+                        } label: {
+                            Text(calendarSummary)
+                                .font(.system(size: 12))
+                        }
+                        .menuStyle(.borderlessButton)
+                        .frame(width: 140)
+                    }
+                }
+            }
+
             // MARK: - Quit
             Button(action: {
                 NSApplication.shared.terminate(nil)
@@ -104,6 +151,13 @@ struct NotchSettingsView: View {
             .buttonStyle(.plain)
         }
         .transition(.scale(scale: 0.8).combined(with: .opacity))
+    }
+
+    private var calendarSummary: String {
+        let total = calendarManager.availableCalendars.count
+        let excluded = calendarManager.excludedCalendarIDs.count
+        guard excluded > 0 else { return NSLocalizedString("All", comment: "") }
+        return "\(max(total - excluded, 0)) of \(total)"
     }
 
     // MARK: - Helpers

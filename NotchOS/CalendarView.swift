@@ -5,6 +5,7 @@
 //  Copyright © 2026 Ishan Gupta. MIT License.
 //
 
+import Combine
 import EventKit
 import SwiftUI
 
@@ -13,26 +14,64 @@ class CalendarManager: ObservableObject {
 
     @Published var nextEvent: EKEvent?
     @Published var todayEvents: [EKEvent] = []
+    @Published var todayReminders: [EKReminder] = []
     @Published var accessGranted: Bool = false
+    @Published var availableCalendars: [EKCalendar] = []
+
+    /// Empty means "all calendars".
+    @PublishedPersist(key: "excludedCalendarIDs", defaultValue: [])
+    var excludedCalendarIDs: Set<String>
+
+    @PublishedPersist(key: "showReminders", defaultValue: true)
+    var showReminders: Bool
 
     private let store = EKEventStore()
     private var timer: Timer?
+    private var cancellables = Set<AnyCancellable>()
 
-    private init() {}
+    private init() {
+        Publishers.Merge(
+            $excludedCalendarIDs.removeDuplicates().map { _ in () },
+            $showReminders.removeDuplicates().map { _ in () }
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] in self?.fetchEvents() }
+        .store(in: &cancellables)
+    }
 
     func start() {
         requestAccess()
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(storeChanged),
+            name: .EKEventStoreChanged, object: store
+        )
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             self?.fetchEvents()
         }
     }
 
+    @objc private func storeChanged() {
+        DispatchQueue.main.async { self.fetchEvents() }
+    }
+
+    /// At startup we only *use* access that was already granted; first-time
+    /// permission prompts are driven from the onboarding flow so they don't
+    /// ambush the user at launch.
     private func requestAccess() {
+        let eventStatus = EKEventStore.authorizationStatus(for: .event)
+        guard eventStatus != .notDetermined else { return }
+
         if #available(macOS 14.0, *) {
             store.requestFullAccessToEvents { [weak self] granted, _ in
                 DispatchQueue.main.async {
                     self?.accessGranted = granted
                     if granted { self?.fetchEvents() }
+                }
+            }
+            if EKEventStore.authorizationStatus(for: .reminder) != .notDetermined {
+                store.requestFullAccessToReminders { [weak self] granted, _ in
+                    guard granted else { return }
+                    DispatchQueue.main.async { self?.fetchEvents() }
                 }
             }
         } else {
@@ -42,19 +81,61 @@ class CalendarManager: ObservableObject {
                     if granted { self?.fetchEvents() }
                 }
             }
+            if EKEventStore.authorizationStatus(for: .reminder) != .notDetermined {
+                store.requestAccess(to: .reminder) { [weak self] granted, _ in
+                    guard granted else { return }
+                    DispatchQueue.main.async { self?.fetchEvents() }
+                }
+            }
         }
+    }
+
+    private var selectedCalendars: [EKCalendar]? {
+        let all = store.calendars(for: .event)
+        DispatchQueue.main.async {
+            if self.availableCalendars.map(\.calendarIdentifier) != all.map(\.calendarIdentifier) {
+                self.availableCalendars = all
+            }
+        }
+        guard !excludedCalendarIDs.isEmpty else { return nil }
+        let selected = all.filter { !excludedCalendarIDs.contains($0.calendarIdentifier) }
+        return selected.isEmpty ? nil : selected
     }
 
     func fetchEvents() {
         guard accessGranted else { return }
         let now = Date()
         let endOfDay = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: now)!
-        let predicate = store.predicateForEvents(withStart: now, end: endOfDay, calendars: nil)
+        let predicate = store.predicateForEvents(withStart: now, end: endOfDay, calendars: selectedCalendars)
         let events = store.events(matching: predicate).sorted { $0.startDate < $1.startDate }
         DispatchQueue.main.async {
             self.nextEvent = events.first
             self.todayEvents = Array(events.prefix(3))
         }
+        fetchReminders(endOfDay: endOfDay)
+    }
+
+    private func fetchReminders(endOfDay: Date) {
+        guard showReminders else {
+            DispatchQueue.main.async { self.todayReminders = [] }
+            return
+        }
+        let predicate = store.predicateForIncompleteReminders(
+            withDueDateStarting: nil, ending: endOfDay, calendars: nil
+        )
+        store.fetchReminders(matching: predicate) { [weak self] reminders in
+            let due = (reminders ?? [])
+                .filter { $0.dueDateComponents != nil }
+                .sorted { ($0.dueDateComponents?.date ?? .distantPast) < ($1.dueDateComponents?.date ?? .distantPast) }
+            DispatchQueue.main.async { self?.todayReminders = Array(due.prefix(3)) }
+        }
+    }
+
+    /// Marks a reminder complete and refreshes.
+    func complete(_ reminder: EKReminder) {
+        reminder.isCompleted = true
+        try? store.save(reminder, commit: true)
+        fetchEvents()
     }
 }
 
@@ -138,6 +219,14 @@ struct CalendarView: View {
                             .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(.white.opacity(0.35))
                     }
+                } else if let reminder = calendarManager.todayReminders.first {
+                    Image(systemName: "checklist")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(cgColor: reminder.calendar.cgColor))
+                    Text(reminder.title ?? "")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .lineLimit(1)
                 } else {
                     Image(systemName: "calendar.badge.clock")
                         .font(.system(size: 12))
@@ -150,6 +239,32 @@ struct CalendarView: View {
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
+        }
+    }
+
+    /// A due reminder with a tappable complete button.
+    func reminderRow(_ reminder: EKReminder) -> some View {
+        HStack(spacing: 8) {
+            Button {
+                withAnimation(vm.animation) {
+                    calendarManager.complete(reminder)
+                }
+            } label: {
+                Image(systemName: "circle")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color(cgColor: reminder.calendar.cgColor))
+            }
+            .buttonStyle(.plain)
+            .frame(width: 40, alignment: .trailing)
+
+            RoundedRectangle(cornerRadius: 1.5)
+                .fill(Color(cgColor: reminder.calendar.cgColor).opacity(0.6))
+                .frame(width: 3, height: 18)
+
+            Text(reminder.title ?? "")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.white.opacity(0.65))
+                .lineLimit(1)
         }
     }
 
@@ -186,7 +301,7 @@ struct CalendarView: View {
                     .tracking(0.5)
                     .padding(.bottom, 6)
 
-                if calendarManager.todayEvents.isEmpty {
+                if calendarManager.todayEvents.isEmpty, calendarManager.todayReminders.isEmpty {
                     Spacer()
                     HStack {
                         Spacer()
@@ -197,8 +312,10 @@ struct CalendarView: View {
                     }
                     Spacer()
                 } else {
+                    let eventRows = Array(calendarManager.todayEvents.prefix(2))
+                    let reminderRows = Array(calendarManager.todayReminders.prefix(max(0, 2 - eventRows.count) + 1))
                     VStack(alignment: .leading, spacing: 8) {
-                        ForEach(calendarManager.todayEvents.prefix(2), id: \.eventIdentifier) { event in
+                        ForEach(eventRows, id: \.eventIdentifier) { event in
                             HStack(spacing: 8) {
                                 Text(event.startDate.formatted(.dateTime.hour().minute()))
                                     .font(.system(size: 11, weight: .medium, design: .monospaced))
@@ -214,6 +331,9 @@ struct CalendarView: View {
                                     .foregroundStyle(.white.opacity(0.8))
                                     .lineLimit(1)
                             }
+                        }
+                        ForEach(reminderRows.prefix(max(0, 3 - eventRows.count)), id: \.calendarItemIdentifier) { reminder in
+                            reminderRow(reminder)
                         }
                     }
                     Spacer(minLength: 0)

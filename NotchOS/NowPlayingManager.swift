@@ -41,6 +41,10 @@ class NowPlayingManager: ObservableObject {
     private var lastArtworkURL: String = ""
     private var pollTimer: Timer?
 
+    // Transient "sneak peek" shown in the closed pill when the track changes.
+    @Published private(set) var sneakPeekVisible: Bool = false
+    private var sneakPeekWorkItem: DispatchWorkItem?
+
     // Hide the closed-notch music pill after playback has been paused this long.
     // `idleHidden` keeps the poll from re-showing it until playback resumes.
     private let idleHideDelay: TimeInterval = 60
@@ -172,7 +176,11 @@ class NowPlayingManager: ObservableObject {
         }
 
         // Only update published properties when values actually change
-        if title != newTitle { title = newTitle }
+        if title != newTitle {
+            // A different track while already showing something -> sneak peek.
+            if !title.isEmpty, newIsPlaying { presentSneakPeek() }
+            title = newTitle
+        }
         if artist != newArtist { artist = newArtist }
         if album != newAlbum { album = newAlbum }
         if isPlaying != newIsPlaying { isPlaying = newIsPlaying }
@@ -340,6 +348,31 @@ class NowPlayingManager: ObservableObject {
         let bundleIdentifier = lastPlayedSource == "spotify" ? "com.spotify.client" : "com.apple.Music"
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) else { return }
         NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
+    }
+
+    private func presentSneakPeek() {
+        sneakPeekWorkItem?.cancel()
+        sneakPeekVisible = true
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.sneakPeekVisible = false
+        }
+        sneakPeekWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5, execute: workItem)
+    }
+
+    /// Jumps playback to `seconds`. Position is updated optimistically so the
+    /// scrubber doesn't snap back while the AppleScript round-trips.
+    func seek(to seconds: Double) {
+        position = min(max(seconds, 0), duration)
+        let target = Int(position)
+        if cachedSpotifyRunning {
+            executeScript("tell application \"Spotify\" to set player position to \(target)")
+        } else {
+            executeScript("tell application \"Music\" to set player position to \(target)")
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.fetchOnMainThread()
+        }
     }
 
     /// AppleScript execution is synchronous and can block for seconds if the target

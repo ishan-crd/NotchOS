@@ -119,10 +119,16 @@ struct TrayView: View {
     }
 }
 
+private struct TrayPreviewHost: View {
+    var body: some View {
+        TrayDropContentView(vm: .init())
+            .padding()
+            .frame(width: 550, height: 150, alignment: .center)
+            .background(.black)
+            .preferredColorScheme(.dark)
+    }
+}
+
 #Preview {
-    NotchContentView(vm: .init())
-        .padding()
-        .frame(width: 550, height: 150, alignment: .center)
-        .background(.black)
-        .preferredColorScheme(.dark)
+    TrayPreviewHost()
 }
