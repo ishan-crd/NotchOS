@@ -75,17 +75,11 @@ private struct OnboardingRootView: View {
 
     var body: some View {
         ZStack {
-            // Native "liquid glass": the desktop blurs through the window.
-            GlassBackground()
+            // Native "liquid glass": the desktop shows through, shaped by
+            // glare, a fresnel rim and a touch of dispersion.
+            LiquidGlassPane(cornerRadius: 16)
                 .ignoresSafeArea()
-
-            // Specular sheen across the top of the pane.
-            LinearGradient(
-                colors: [.white.opacity(0.18), .white.opacity(0.02), .clear],
-                startPoint: .top, endPoint: .center
-            )
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
+                .allowsHitTesting(false)
 
             VStack(spacing: 0) {
                 ZStack {
@@ -139,7 +133,7 @@ private struct OnboardingRootView: View {
                 .transition(.opacity)
             }
 
-            Button(page == pageCount - 1 ? String(localized: "Start ✨") : String(localized: "Continue")) {
+            Button(page == pageCount - 1 ? String(localized: "Start") : String(localized: "Continue")) {
                 if page == pageCount - 1 {
                     onFinish()
                 } else {
@@ -350,12 +344,15 @@ private struct FeatureCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(.white.opacity(hovering ? 0.10 : 0.06))
+        )
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(specularEdge, lineWidth: 1)
         )
-        .shadow(color: .black.opacity(hovering ? 0.18 : 0.1), radius: hovering ? 14 : 8, y: 4)
+        .shadow(color: .black.opacity(hovering ? 0.22 : 0.14), radius: hovering ? 14 : 8, y: 4)
         .scaleEffect(hovering ? 1.03 : 1)
         .animation(.spring(response: 0.35, dampingFraction: 0.7), value: hovering)
         .onHover { hovering = $0 }
@@ -480,12 +477,15 @@ private struct PermissionCard: View {
             }
         }
         .padding(12)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(.white.opacity(0.06))
+        )
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(specularEdge, lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+        .shadow(color: .black.opacity(0.14), radius: 8, y: 4)
     }
 }
 
@@ -572,24 +572,103 @@ private struct ConfettiField: View {
 /// The hairline highlight that gives glass surfaces their specular edge.
 private var specularEdge: LinearGradient {
     LinearGradient(
-        colors: [.white.opacity(0.35), .white.opacity(0.06), .white.opacity(0.12)],
-        startPoint: .top, endPoint: .bottom
+        colors: [.white.opacity(0.50), .white.opacity(0.08), .white.opacity(0.05), .white.opacity(0.30)],
+        startPoint: .topLeading, endPoint: .bottomTrailing
     )
 }
 
-/// Blurs whatever is behind the window - the real, system "liquid glass".
-/// `.hudWindow` is the thinnest, most transparent system material.
+/// Light frosting behind the window. Kept faint on purpose: real liquid glass
+/// is mostly *clear* (the reference implementation ships tint alpha 0 and a
+/// blur radius of 1); the depth comes from glare and the fresnel rim, not fog.
 private struct GlassBackground: NSViewRepresentable {
+    var strength: CGFloat = 0.4
+
     func makeNSView(context _: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.material = .hudWindow
         view.blendingMode = .behindWindow
         view.state = .active
         view.wantsLayer = true
+        view.alphaValue = strength
         return view
     }
 
-    func updateNSView(_: NSVisualEffectView, context _: Context) {}
+    func updateNSView(_ view: NSVisualEffectView, context _: Context) {
+        view.alphaValue = strength
+    }
+}
+
+/// A pane of liquid glass: faint frost, a -45° glare that pools along the
+/// leading and opposite edges, a fresnel rim that brightens toward the border,
+/// and a whisper of chromatic dispersion on that rim.
+private struct LiquidGlassPane: View {
+    var cornerRadius: CGFloat = 0
+    /// Fraction of the surface the glare reaches in from an edge (glareRange).
+    private let glareRange: CGFloat = 0.30
+
+    var body: some View {
+        ZStack {
+            GlassBackground(strength: 0.45)
+
+            // Contrast layer: Apple's glass darkens slightly under content so
+            // text stays legible over busy desktops. Kept low and centre-biased
+            // so the edges read as clear glass.
+            RadialGradient(
+                colors: [.black.opacity(0.28), .black.opacity(0.10)],
+                center: .center, startRadius: 40, endRadius: 340
+            )
+
+            // Glare, angled -45°: strong on the leading edge, weaker on the
+            // opposite one (glareFactor / glareOppositeFactor).
+            LinearGradient(
+                stops: [
+                    .init(color: .white.opacity(0.30), location: 0),
+                    .init(color: .white.opacity(0.05), location: glareRange),
+                    .init(color: .clear, location: 0.55),
+                    .init(color: .white.opacity(0.04), location: 1 - glareRange),
+                    .init(color: .white.opacity(0.16), location: 1),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .blendMode(.plusLighter)
+
+            // Fresnel: the rim brightens as the surface turns away from view.
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(0.55),
+                            .white.opacity(0.12),
+                            .white.opacity(0.08),
+                            .white.opacity(0.38),
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+                .blendMode(.plusLighter)
+
+            // Dispersion: light splitting into cool/warm fringes on the rim.
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.55, green: 0.85, blue: 1).opacity(0.30),
+                            .clear,
+                            Color(red: 1, green: 0.65, blue: 0.85).opacity(0.22),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 1.5
+                )
+                .blur(radius: 1.4)
+                .blendMode(.plusLighter)
+        }
+        .compositingGroup()
+    }
 }
 
 private struct GlowButtonStyle: ButtonStyle {
@@ -601,8 +680,8 @@ private struct GlowButtonStyle: ButtonStyle {
             .foregroundStyle(.white)
             .padding(.horizontal, compact ? 12 : 20)
             .padding(.vertical, compact ? 5 : 9)
-            .background(Capsule().fill(Color(nsColor: .controlAccentColor).opacity(0.85)))
-            .background(.ultraThinMaterial, in: Capsule())
+            .background(Capsule().fill(Color(nsColor: .controlAccentColor).opacity(0.62)))
+            .background(Capsule().fill(.white.opacity(0.10)))
             .overlay(Capsule().strokeBorder(specularEdge, lineWidth: 1))
             .shadow(color: .black.opacity(0.25), radius: configuration.isPressed ? 3 : 8, y: 3)
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
@@ -617,7 +696,7 @@ private struct GhostButtonStyle: ButtonStyle {
             .foregroundStyle(.secondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 9)
-            .background(.ultraThinMaterial, in: Capsule())
+            .background(Capsule().fill(.white.opacity(0.07)))
             .overlay(Capsule().strokeBorder(specularEdge, lineWidth: 1))
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
     }
