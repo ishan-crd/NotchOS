@@ -444,7 +444,7 @@ struct FocusMediaPlayerView: View {
 
     var trackInfo: some View {
         VStack(alignment: .leading, spacing: 3) {
-            MarqueeText(text: nowPlaying.title, font: .system(size: 17, weight: .bold))
+            MarqueeText(text: nowPlaying.title, font: .system(size: 17, weight: .bold), active: vm.status == .opened)
                 .frame(height: 21)
 
             Text(nowPlaying.album)

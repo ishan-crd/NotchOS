@@ -14,6 +14,9 @@ struct MarqueeText: View {
     let text: String
     let font: Font
     var color: Color = .white
+    /// When false the text renders statically - pass the panel's visibility so
+    /// hidden-but-mounted players don't keep a timeline running.
+    var active: Bool = true
 
     @State private var textWidth: CGFloat = 0
     @State private var containerWidth: CGFloat = 0
@@ -21,7 +24,7 @@ struct MarqueeText: View {
     private let gap: CGFloat = 32
     private let speed: CGFloat = 24 // points per second
 
-    private var needsScroll: Bool { textWidth > containerWidth + 1 }
+    private var needsScroll: Bool { active && textWidth > containerWidth + 1 }
 
     var body: some View {
         GeometryReader { geo in

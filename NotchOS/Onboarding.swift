@@ -37,7 +37,8 @@ class OnboardingWindowController: NSWindowController {
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isMovableByWindowBackground = true
-        window.backgroundColor = .black
+        window.isOpaque = false
+        window.backgroundColor = .clear
         window.level = .floating
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
@@ -55,7 +56,11 @@ class OnboardingWindowController: NSWindowController {
 
     func finish() {
         Self.hasCompletedOnboarding = true
-        window?.orderOut(nil)
+        // Tear the hosting view down for real - orderOut alone keeps the view
+        // tree alive, and its animations would keep ticking forever.
+        window?.contentViewController = nil
+        window?.close()
+        window = nil
         Self.shared = nil
     }
 }
@@ -70,8 +75,17 @@ private struct OnboardingRootView: View {
 
     var body: some View {
         ZStack {
-            // Soft animated glow that drifts behind every page.
-            DriftingGlow()
+            // Native "liquid glass": the desktop blurs through the window.
+            GlassBackground()
+                .ignoresSafeArea()
+
+            // Specular sheen across the top of the pane.
+            LinearGradient(
+                colors: [.white.opacity(0.18), .white.opacity(0.02), .clear],
+                startPoint: .top, endPoint: .center
+            )
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
 
             VStack(spacing: 0) {
                 ZStack {
@@ -94,8 +108,6 @@ private struct OnboardingRootView: View {
             }
         }
         .frame(width: 560, height: 440)
-        .background(Color.black)
-        .preferredColorScheme(.dark)
     }
 
     private var pageTransition: AnyTransition {
@@ -111,7 +123,7 @@ private struct OnboardingRootView: View {
             HStack(spacing: 7) {
                 ForEach(0..<pageCount, id: \.self) { index in
                     Capsule()
-                        .fill(index == page ? .white : .white.opacity(0.2))
+                        .fill(index == page ? Color.primary : Color.primary.opacity(0.22))
                         .frame(width: index == page ? 20 : 6, height: 6)
                 }
             }
@@ -160,7 +172,7 @@ private struct WelcomePage: View {
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                 Text("That little black island up there?\nIt's about to become the most useful pixel on your Mac.")
                     .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.55))
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
             .offset(y: appeared ? 0 : 16)
@@ -290,7 +302,7 @@ private struct FeaturesPage: View {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                 Text("Rest your cursor on the notch and it blooms open.")
                     .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.55))
+                    .foregroundStyle(.secondary)
             }
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -333,15 +345,17 @@ private struct FeatureCard: View {
                 .font(.system(size: 13, weight: .semibold))
             Text(blurb)
                 .font(.system(size: 11))
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .fill(.white.opacity(hovering ? 0.09 : 0.05))
+                .strokeBorder(specularEdge, lineWidth: 1)
         )
+        .shadow(color: .black.opacity(hovering ? 0.18 : 0.1), radius: hovering ? 14 : 8, y: 4)
         .scaleEffect(hovering ? 1.03 : 1)
         .animation(.spring(response: 0.35, dampingFraction: 0.7), value: hovering)
         .onHover { hovering = $0 }
@@ -368,7 +382,7 @@ private struct PermissionsPage: View {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                 Text("Both optional — NotchOS works fine without them.")
                     .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.55))
+                    .foregroundStyle(.secondary)
             }
 
             VStack(spacing: 10) {
@@ -444,7 +458,7 @@ private struct PermissionCard: View {
                     .font(.system(size: 13, weight: .semibold))
                 Text(blurb)
                     .font(.system(size: 11))
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -462,11 +476,16 @@ private struct PermissionCard: View {
             } else {
                 Image(systemName: "hand.wave.fill")
                     .font(.system(size: 16))
-                    .foregroundStyle(.white.opacity(0.3))
+                    .foregroundStyle(.tertiary)
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 14).fill(.white.opacity(0.05)))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(specularEdge, lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
     }
 }
 
@@ -488,7 +507,7 @@ private struct ReadyPage: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                 Text("Rest your cursor on the notch and watch it bloom.\nDrag a file onto it. Play a song. Enjoy ✦")
                     .font(.system(size: 13))
-                    .foregroundStyle(.white.opacity(0.55))
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                 Spacer()
             }
@@ -550,29 +569,27 @@ private struct ConfettiField: View {
 
 // MARK: - Chrome
 
-/// A slow, soft color glow that drifts behind the pages.
-private struct DriftingGlow: View {
-    @State private var move = false
+/// The hairline highlight that gives glass surfaces their specular edge.
+private var specularEdge: LinearGradient {
+    LinearGradient(
+        colors: [.white.opacity(0.35), .white.opacity(0.06), .white.opacity(0.12)],
+        startPoint: .top, endPoint: .bottom
+    )
+}
 
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.purple.opacity(0.16))
-                .frame(width: 340, height: 340)
-                .blur(radius: 70)
-                .offset(x: move ? -140 : 120, y: move ? -110 : -30)
-            Circle()
-                .fill(Color.pink.opacity(0.12))
-                .frame(width: 300, height: 300)
-                .blur(radius: 70)
-                .offset(x: move ? 150 : -110, y: move ? 120 : 40)
-        }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) {
-                move = true
-            }
-        }
+/// Blurs whatever is behind the window - the real, system "liquid glass".
+/// `.hudWindow` is the thinnest, most transparent system material.
+private struct GlassBackground: NSViewRepresentable {
+    func makeNSView(context _: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .hudWindow
+        view.blendingMode = .behindWindow
+        view.state = .active
+        view.wantsLayer = true
+        return view
     }
+
+    func updateNSView(_: NSVisualEffectView, context _: Context) {}
 }
 
 private struct GlowButtonStyle: ButtonStyle {
@@ -581,11 +598,13 @@ private struct GlowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: compact ? 11 : 13, weight: .semibold, design: .rounded))
-            .foregroundStyle(.black)
+            .foregroundStyle(.white)
             .padding(.horizontal, compact ? 12 : 20)
             .padding(.vertical, compact ? 5 : 9)
-            .background(Capsule().fill(.white))
-            .shadow(color: .white.opacity(0.25), radius: configuration.isPressed ? 2 : 10)
+            .background(Capsule().fill(Color(nsColor: .controlAccentColor).opacity(0.85)))
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(specularEdge, lineWidth: 1))
+            .shadow(color: .black.opacity(0.25), radius: configuration.isPressed ? 3 : 8, y: 3)
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
             .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
     }
@@ -595,9 +614,11 @@ private struct GhostButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 13, weight: .medium, design: .rounded))
-            .foregroundStyle(.white.opacity(0.55))
+            .foregroundStyle(.secondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 9)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(specularEdge, lineWidth: 1))
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
     }
 }
