@@ -142,7 +142,7 @@ struct MediaPlayerView: View {
 
     var trackInfo: some View {
         VStack(alignment: .leading, spacing: 4) {
-            MarqueeText(text: nowPlaying.title, font: .system(size: 13, weight: .semibold))
+            MarqueeText(text: nowPlaying.title, font: .system(size: 13, weight: .semibold), active: vm.status == .opened)
                 .frame(height: 16)
 
             Text(nowPlaying.album)

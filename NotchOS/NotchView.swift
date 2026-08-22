@@ -252,7 +252,8 @@ struct NotchView: View {
     @ViewBuilder
     var dragDetector: some View {
         RoundedRectangle(cornerRadius: notchCornerRadius)
-            .foregroundStyle(Color.black.opacity(0.001)) // fuck you apple and 0.001 is the smallest we can have
+            // 0.001 is the lowest opacity that still receives drop events.
+            .foregroundStyle(Color.black.opacity(0.001))
             .contentShape(Rectangle())
             .frame(width: notchSize.width + vm.dropDetectorRange, height: notchSize.height + vm.dropDetectorRange)
             .onDrop(of: [.data], isTargeted: $dropTargeting) { _ in true }
