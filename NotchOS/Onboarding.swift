@@ -37,8 +37,7 @@ class OnboardingWindowController: NSWindowController {
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isMovableByWindowBackground = true
-        window.isOpaque = false
-        window.backgroundColor = .clear
+        window.backgroundColor = .black
         window.level = .floating
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
@@ -75,62 +74,32 @@ private struct OnboardingRootView: View {
 
     var body: some View {
         ZStack {
-            // The desktop blurs through the transparent window.
-            GlassBackground(strength: 0.45)
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
+            // Soft animated glow that drifts behind every page.
+            DriftingGlow()
 
-            // Everything above is a single slab of glass: the shader refracts
-            // and disperses it at the rim and lights it with fresnel + glare.
-            ZStack {
-                // Faint body tint so the slab has something to refract and
-                // keeps text legible over busy desktops.
-                RadialGradient(
-                    colors: [.black.opacity(0.30), .black.opacity(0.10)],
-                    center: .center, startRadius: 40, endRadius: 340
-                )
-
-                VStack(spacing: 0) {
-                    ZStack {
-                        switch page {
-                        case 0: WelcomePage()
-                            .transition(pageTransition)
-                        case 1: FeaturesPage()
-                            .transition(pageTransition)
-                        case 2: PermissionsPage()
-                            .transition(pageTransition)
-                        default: ReadyPage()
-                            .transition(pageTransition)
-                        }
+            VStack(spacing: 0) {
+                ZStack {
+                    switch page {
+                    case 0: WelcomePage()
+                        .transition(pageTransition)
+                    case 1: FeaturesPage()
+                        .transition(pageTransition)
+                    case 2: PermissionsPage()
+                        .transition(pageTransition)
+                    default: ReadyPage()
+                        .transition(pageTransition)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    controls
-                        .padding(.horizontal, 32)
-                        .padding(.bottom, 26)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                controls
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 26)
             }
-            .modifier(
-                LiquidGlassEffect(
-                    size: CGSize(width: 560, height: 440),
-                    cornerRadius: 22,
-                    roundness: 4,
-                    thickness: 26,
-                    refFactor: 1.4,
-                    dispersion: 7,
-                    fresnelRange: 30,
-                    fresnelHardness: 0.20,
-                    fresnelFactor: 0.20,
-                    glareRange: 30,
-                    glareHardness: 0.20,
-                    glareFactor: 0.90,
-                    glareConvergence: 0.50,
-                    glareOppositeFactor: 0.80,
-                    glareAngle: -.pi / 4
-                )
-            )
         }
         .frame(width: 560, height: 440)
+        .background(Color.black)
+        .preferredColorScheme(.dark)
     }
 
     private var pageTransition: AnyTransition {
@@ -146,7 +115,7 @@ private struct OnboardingRootView: View {
             HStack(spacing: 7) {
                 ForEach(0..<pageCount, id: \.self) { index in
                     Capsule()
-                        .fill(index == page ? Color.primary : Color.primary.opacity(0.22))
+                        .fill(index == page ? .white : .white.opacity(0.2))
                         .frame(width: index == page ? 20 : 6, height: 6)
                 }
             }
@@ -195,7 +164,7 @@ private struct WelcomePage: View {
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                 Text("That little black island up there?\nIt's about to become the most useful pixel on your Mac.")
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.55))
                     .multilineTextAlignment(.center)
             }
             .offset(y: appeared ? 0 : 16)
@@ -325,7 +294,7 @@ private struct FeaturesPage: View {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                 Text("Rest your cursor on the notch and it blooms open.")
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.55))
             }
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -368,20 +337,15 @@ private struct FeatureCard: View {
                 .font(.system(size: 13, weight: .semibold))
             Text(blurb)
                 .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.5))
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(hovering ? 0.10 : 0.06))
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.white.opacity(hovering ? 0.09 : 0.05))
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(specularEdge, lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(hovering ? 0.22 : 0.14), radius: hovering ? 14 : 8, y: 4)
         .scaleEffect(hovering ? 1.03 : 1)
         .animation(.spring(response: 0.35, dampingFraction: 0.7), value: hovering)
         .onHover { hovering = $0 }
@@ -408,7 +372,7 @@ private struct PermissionsPage: View {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                 Text("Both optional — NotchOS works fine without them.")
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.55))
             }
 
             VStack(spacing: 10) {
@@ -484,7 +448,7 @@ private struct PermissionCard: View {
                     .font(.system(size: 13, weight: .semibold))
                 Text(blurb)
                     .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.5))
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -502,19 +466,11 @@ private struct PermissionCard: View {
             } else {
                 Image(systemName: "hand.wave.fill")
                     .font(.system(size: 16))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.white.opacity(0.3))
             }
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(0.06))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(specularEdge, lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.14), radius: 8, y: 4)
+        .background(RoundedRectangle(cornerRadius: 14).fill(.white.opacity(0.05)))
     }
 }
 
@@ -536,7 +492,7 @@ private struct ReadyPage: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                 Text("Rest your cursor on the notch and watch it bloom.\nDrag a file onto it. Play a song. Enjoy ✦")
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.55))
                     .multilineTextAlignment(.center)
                 Spacer()
             }
@@ -598,80 +554,27 @@ private struct ConfettiField: View {
 
 // MARK: - Chrome
 
-/// The hairline highlight that gives glass surfaces their specular edge.
-private var specularEdge: LinearGradient {
-    LinearGradient(
-        colors: [.white.opacity(0.50), .white.opacity(0.08), .white.opacity(0.05), .white.opacity(0.30)],
-        startPoint: .topLeading, endPoint: .bottomTrailing
-    )
-}
+/// A slow, soft color glow that drifts behind the pages.
+private struct DriftingGlow: View {
+    @State private var move = false
 
-/// Light frosting behind the window. Kept faint on purpose: real liquid glass
-/// is mostly *clear* (the reference implementation ships tint alpha 0 and a
-/// blur radius of 1); the depth comes from glare and the fresnel rim, not fog.
-private struct GlassBackground: NSViewRepresentable {
-    var strength: CGFloat = 0.4
-
-    func makeNSView(context _: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.material = .hudWindow
-        view.blendingMode = .behindWindow
-        view.state = .active
-        view.wantsLayer = true
-        view.alphaValue = strength
-        return view
-    }
-
-    func updateNSView(_ view: NSVisualEffectView, context _: Context) {
-        view.alphaValue = strength
-    }
-}
-
-/// Applies the Metal liquid-glass optics, with a gradient fallback pre-14.
-private struct LiquidGlassEffect: ViewModifier {
-    let size: CGSize
-    let cornerRadius: CGFloat
-    let roundness: CGFloat
-    let thickness: CGFloat
-    let refFactor: CGFloat
-    let dispersion: CGFloat
-    let fresnelRange: CGFloat
-    let fresnelHardness: CGFloat
-    let fresnelFactor: CGFloat
-    let glareRange: CGFloat
-    let glareHardness: CGFloat
-    let glareFactor: CGFloat
-    let glareConvergence: CGFloat
-    let glareOppositeFactor: CGFloat
-    let glareAngle: CGFloat
-
-    func body(content: Content) -> some View {
-        if #available(macOS 14.0, *), size.width > 0, size.height > 0 {
-            content.layerEffect(
-                ShaderLibrary.liquidGlass(
-                    .float2(size),
-                    .float(cornerRadius),
-                    .float(roundness),
-                    .float(thickness),
-                    .float(refFactor),
-                    .float(dispersion),
-                    .float(fresnelRange),
-                    .float(fresnelHardness),
-                    .float(fresnelFactor),
-                    .float(glareRange),
-                    .float(glareHardness),
-                    .float(glareFactor),
-                    .float(glareConvergence),
-                    .float(glareOppositeFactor),
-                    .float(glareAngle)
-                ),
-                maxSampleOffset: CGSize(width: 80, height: 80)
-            )
-        } else {
-            content.overlay(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(specularEdge, lineWidth: 1)
-            )
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.purple.opacity(0.16))
+                .frame(width: 340, height: 340)
+                .blur(radius: 70)
+                .offset(x: move ? -140 : 120, y: move ? -110 : -30)
+            Circle()
+                .fill(Color.pink.opacity(0.12))
+                .frame(width: 300, height: 300)
+                .blur(radius: 70)
+                .offset(x: move ? 150 : -110, y: move ? 120 : 40)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) {
+                move = true
+            }
         }
     }
 }
@@ -682,13 +585,11 @@ private struct GlowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: compact ? 11 : 13, weight: .semibold, design: .rounded))
-            .foregroundStyle(.white)
+            .foregroundStyle(.black)
             .padding(.horizontal, compact ? 12 : 20)
             .padding(.vertical, compact ? 5 : 9)
-            .background(Capsule().fill(Color(nsColor: .controlAccentColor).opacity(0.62)))
-            .background(Capsule().fill(.white.opacity(0.10)))
-            .overlay(Capsule().strokeBorder(specularEdge, lineWidth: 1))
-            .shadow(color: .black.opacity(0.25), radius: configuration.isPressed ? 3 : 8, y: 3)
+            .background(Capsule().fill(.white))
+            .shadow(color: .white.opacity(0.25), radius: configuration.isPressed ? 2 : 10)
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
             .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
     }
@@ -698,11 +599,9 @@ private struct GhostButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 13, weight: .medium, design: .rounded))
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.white.opacity(0.55))
             .padding(.horizontal, 14)
             .padding(.vertical, 9)
-            .background(Capsule().fill(.white.opacity(0.07)))
-            .overlay(Capsule().strokeBorder(specularEdge, lineWidth: 1))
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
     }
 }
