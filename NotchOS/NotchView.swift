@@ -10,11 +10,17 @@ import SwiftUI
 struct NotchView: View {
     @StateObject var vm: NotchViewModel
     @ObservedObject private var nowPlaying = NowPlayingManager.shared
+    @ObservedObject private var battery = BatteryMonitor.shared
 
     @State var dropTargeting: Bool = false
+    @Namespace private var artNamespace
 
+    // Extra pill width for whichever closed-notch activity is showing.
     private var musicExpand: CGFloat {
-        nowPlaying.hasNowPlaying && vm.status == .closed ? 72 : 0
+        guard vm.status != .opened else { return 0 }
+        if battery.activityVisible { return 130 }
+        if nowPlaying.hasNowPlaying, nowPlaying.sneakPeekVisible { return 240 }
+        return nowPlaying.hasNowPlaying ? 72 : 0
     }
 
     var notchSize: CGSize {
@@ -57,7 +63,7 @@ struct NotchView: View {
             // directions along the same path.
             VStack(spacing: vm.spacing) {
                 NotchHeaderView(vm: vm)
-                NotchContentView(vm: vm)
+                NotchContentView(vm: vm, artNamespace: artNamespace)
                     .frame(maxHeight: .infinity)
             }
             .padding(vm.spacing)
@@ -103,8 +109,12 @@ struct NotchView: View {
         notchFill
             .mask(notchBackgroundMaskGroup)
             .overlay {
-                if nowPlaying.hasNowPlaying && vm.status != .opened {
-                    notchMusicOverlay
+                if vm.status != .opened {
+                    if battery.activityVisible {
+                        notchBatteryOverlay
+                    } else if nowPlaying.hasNowPlaying {
+                        notchMusicOverlay
+                    }
                 }
             }
             .frame(
@@ -116,11 +126,38 @@ struct NotchView: View {
                 radius: 16
             )
             .animation(vm.animation, value: nowPlaying.hasNowPlaying)
+            .animation(vm.animation, value: nowPlaying.sneakPeekVisible)
+            .animation(vm.animation, value: battery.activityVisible)
             .animation(vm.animation, value: vm.glassStyle)
     }
 
+    /// Transient charge indicator shown when the power adapter is plugged in
+    /// or removed.
+    var notchBatteryOverlay: some View {
+        HStack(spacing: 6) {
+            Image(systemName: battery.isPluggedIn ? "bolt.fill" : "battery.75percent")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(battery.isPluggedIn ? .green : .yellow)
+                .padding(.leading, 10)
+
+            Spacer()
+
+            Text(battery.isPluggedIn ? "Charging" : "On Battery")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.7))
+
+            Text("\(battery.levelPercent)%")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(battery.isPluggedIn ? .green : .white)
+                .padding(.trailing, 10)
+        }
+        .frame(width: notchSize.width, height: notchSize.height)
+        .allowsHitTesting(false)
+        .transition(.opacity)
+    }
+
     var notchMusicOverlay: some View {
-        HStack {
+        HStack(spacing: 8) {
             // Album art on the left
             Group {
                 if let artwork = nowPlaying.artwork {
@@ -138,9 +175,26 @@ struct NotchView: View {
             }
             .frame(width: 20, height: 20)
             .clipShape(RoundedRectangle(cornerRadius: 4.5))
+            .matchedGeometryEffect(id: "albumArt", in: artNamespace, isSource: vm.status != .opened)
             .padding(.leading, 8)
 
-            Spacer()
+            if nowPlaying.sneakPeekVisible {
+                // Track-change sneak peek: title + artist between art and bars.
+                VStack(alignment: .leading, spacing: 0) {
+                    MarqueeText(
+                        text: nowPlaying.title,
+                        font: .system(size: 10, weight: .semibold)
+                    )
+                    .frame(height: 13)
+                    Text(nowPlaying.artist)
+                        .font(.system(size: 8.5))
+                        .foregroundStyle(.white.opacity(0.55))
+                        .lineLimit(1)
+                }
+                .transition(.opacity)
+            } else {
+                Spacer(minLength: 0)
+            }
 
             // Waveform bars on the right
             WaveformView(isPlaying: nowPlaying.isPlaying, color: Color(nsColor: nowPlaying.dominantColor))

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MediaPlayerView: View {
     @StateObject var vm: NotchViewModel
+    let artNamespace: Namespace.ID
     @ObservedObject private var nowPlaying = NowPlayingManager.shared
 
     var body: some View {
@@ -133,13 +134,16 @@ struct MediaPlayerView: View {
         }
         .frame(width: 80, height: 80)
         .clipShape(RoundedRectangle(cornerRadius: 10))
+        .matchedGeometryEffect(
+            id: "albumArt", in: artNamespace,
+            isSource: vm.status == .opened && vm.dashboardLayout != .focus
+        )
     }
 
     var trackInfo: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(nowPlaying.title)
-                .font(.system(size: 13, weight: .semibold))
-                .lineLimit(1)
+            MarqueeText(text: nowPlaying.title, font: .system(size: 13, weight: .semibold))
+                .frame(height: 16)
 
             Text(nowPlaying.album)
                 .font(.system(size: 11))

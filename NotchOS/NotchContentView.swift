@@ -55,13 +55,14 @@ struct TrayDropContentView: View {
 
 struct NotchContentView: View {
     @StateObject var vm: NotchViewModel
+    let artNamespace: Namespace.ID
     @StateObject var tvm = TrayDrop.shared
 
     // MARK: - Layout Views
 
     var splitLayout: some View {
         HStack(spacing: 0) {
-            MediaPlayerView(vm: vm)
+            MediaPlayerView(vm: vm, artNamespace: artNamespace)
                 .frame(width: 240)
             Divider().opacity(0.08).padding(.vertical, 8)
             CalendarView(vm: vm)
@@ -75,14 +76,14 @@ struct NotchContentView: View {
 
     var gridLayout: some View {
         HStack(spacing: 0) {
-            MediaPlayerView(vm: vm)
+            MediaPlayerView(vm: vm, artNamespace: artNamespace)
             Divider().opacity(0.08).padding(.vertical, 8)
             CalendarView(vm: vm)
         }
     }
 
     var focusLayout: some View {
-        FocusCarouselView(vm: vm)
+        FocusCarouselView(vm: vm, artNamespace: artNamespace)
     }
 
     // MARK: - Edit Mode Overlay
@@ -200,6 +201,7 @@ struct NotchContentView: View {
 
 struct FocusCarouselView: View {
     @StateObject var vm: NotchViewModel
+    let artNamespace: Namespace.ID
     @State private var dragOffset: CGFloat = 0
 
     private let pageCount = 2
@@ -211,7 +213,7 @@ struct FocusCarouselView: View {
                 let currentOffset = -CGFloat(vm.focusPage) * pageWidth + dragOffset
 
                 HStack(spacing: 0) {
-                    FocusMediaPlayerView(vm: vm)
+                    FocusMediaPlayerView(vm: vm, artNamespace: artNamespace)
                         .frame(width: pageWidth, height: geo.size.height)
                     CalendarView(vm: vm)
                         .frame(width: pageWidth, height: geo.size.height)
@@ -256,7 +258,9 @@ struct FocusCarouselView: View {
 
 struct FocusMediaPlayerView: View {
     @StateObject var vm: NotchViewModel
+    let artNamespace: Namespace.ID
     @ObservedObject private var nowPlaying = NowPlayingManager.shared
+    @State private var scrubPosition: Double?
 
     private func formatTime(_ seconds: Double) -> String {
         guard seconds.isFinite, seconds >= 0 else { return "0:00" }
@@ -432,13 +436,16 @@ struct FocusMediaPlayerView: View {
         }
         .frame(width: 90, height: 90)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .matchedGeometryEffect(
+            id: "albumArt", in: artNamespace,
+            isSource: vm.status == .opened && vm.dashboardLayout == .focus
+        )
     }
 
     var trackInfo: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(nowPlaying.title)
-                .font(.system(size: 17, weight: .bold))
-                .lineLimit(1)
+            MarqueeText(text: nowPlaying.title, font: .system(size: 17, weight: .bold))
+                .frame(height: 21)
 
             Text(nowPlaying.album)
                 .font(.system(size: 13))
@@ -456,21 +463,38 @@ struct FocusMediaPlayerView: View {
     var progressBar: some View {
         VStack(spacing: 2) {
             GeometryReader { geo in
-                let progress = nowPlaying.duration > 0 ? min(nowPlaying.position / nowPlaying.duration, 1.0) : 0
+                let shown = scrubPosition ?? nowPlaying.position
+                let progress = nowPlaying.duration > 0 ? min(shown / nowPlaying.duration, 1.0) : 0
 
                 ZStack(alignment: .leading) {
                     Capsule()
                         .fill(.white.opacity(0.15))
-                        .frame(height: 3)
+                        .frame(height: scrubPosition == nil ? 3 : 5)
                     Capsule()
                         .fill(.white.opacity(0.9))
-                        .frame(width: geo.size.width * progress, height: 3)
+                        .frame(width: geo.size.width * progress, height: scrubPosition == nil ? 3 : 5)
                 }
+                .frame(height: 12)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            guard nowPlaying.duration > 0 else { return }
+                            let fraction = min(max(value.location.x / geo.size.width, 0), 1)
+                            scrubPosition = fraction * nowPlaying.duration
+                        }
+                        .onEnded { _ in
+                            guard let target = scrubPosition else { return }
+                            nowPlaying.seek(to: target)
+                            scrubPosition = nil
+                        }
+                )
+                .animation(.easeOut(duration: 0.12), value: scrubPosition == nil)
             }
-            .frame(height: 3)
+            .frame(height: 12)
 
             HStack {
-                Text(formatTime(nowPlaying.position))
+                Text(formatTime(scrubPosition ?? nowPlaying.position))
                 Spacer()
                 Text(formatTime(nowPlaying.duration))
             }
@@ -503,10 +527,17 @@ struct FocusMediaPlayerView: View {
     }
 }
 
+private struct NotchContentPreviewHost: View {
+    @Namespace var ns
+    var body: some View {
+        NotchContentView(vm: .init(), artNamespace: ns)
+            .padding()
+            .frame(width: 600, height: 150, alignment: .center)
+            .background(.black)
+            .preferredColorScheme(.dark)
+    }
+}
+
 #Preview {
-    NotchContentView(vm: .init())
-        .padding()
-        .frame(width: 600, height: 150, alignment: .center)
-        .background(.black)
-        .preferredColorScheme(.dark)
+    NotchContentPreviewHost()
 }

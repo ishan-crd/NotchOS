@@ -42,6 +42,11 @@ struct DropItemView: View {
         }
         .contextMenu {
             Button {
+                QuickLookPreviewer.shared.preview([item.storageURL])
+            } label: {
+                Label("Quick Look", systemImage: "eye")
+            }
+            Button {
                 NSWorkspace.shared.open(item.storageURL)
             } label: {
                 Label("Open", systemImage: "doc")
@@ -50,6 +55,17 @@ struct DropItemView: View {
                 NSWorkspace.shared.activateFileViewerSelecting([item.storageURL])
             } label: {
                 Label("Show in Finder", systemImage: "folder")
+            }
+            Divider()
+            Button {
+                Share(files: [item.storageURL]).begin()
+            } label: {
+                Label("Share…", systemImage: "square.and.arrow.up")
+            }
+            Button {
+                Share(files: [item.storageURL], serviceName: .sendViaAirDrop).begin()
+            } label: {
+                Label("AirDrop", systemImage: "airplayaudio")
             }
             Divider()
             Button(role: .destructive) {

@@ -8,6 +8,10 @@
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>NotchOS needs access to control media playback and display now playing information.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>NotchOS shows reminders due today alongside your calendar events.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>NotchOS shows reminders due today alongside your calendar events.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>NotchOS needs access to your calendar to display upcoming events.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>

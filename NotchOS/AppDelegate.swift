@@ -39,6 +39,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.timer = timer
 
         rebuildApplicationWindows()
+
+        BatteryMonitor.shared.start()
+        OnboardingWindowController.presentIfNeeded()
     }
 
     func applicationWillTerminate(_: Notification) {
