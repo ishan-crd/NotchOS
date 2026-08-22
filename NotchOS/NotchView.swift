@@ -51,25 +51,22 @@ struct NotchView: View {
                 .zIndex(0)
                 .disabled(true)
                 .opacity(vm.notchVisible || nowPlaying.hasNowPlaying ? 1 : 0.3)
-            Group {
-                if vm.status == .opened {
-                    VStack(spacing: vm.spacing) {
-                        NotchHeaderView(vm: vm)
-                        NotchContentView(vm: vm)
-                            .frame(maxHeight: .infinity)
-                    }
-                    .padding(vm.spacing)
-                    .frame(width: vm.notchOpenedSize.width, height: vm.notchOpenedSize.height)
-                    .zIndex(1)
-                }
+            // The content stays mounted and its scale/offset/opacity are keyed to
+            // the status instead of using an insertion/removal transition, so the
+            // close is the exact reverse of the open - one spring drives both
+            // directions along the same path.
+            VStack(spacing: vm.spacing) {
+                NotchHeaderView(vm: vm)
+                NotchContentView(vm: vm)
+                    .frame(maxHeight: .infinity)
             }
-            .transition(
-                .scale.combined(
-                    with: .opacity
-                ).combined(
-                    with: .offset(y: -vm.notchOpenedSize.height / 2)
-                ).animation(vm.animation)
-            )
+            .padding(vm.spacing)
+            .frame(width: vm.notchOpenedSize.width, height: vm.notchOpenedSize.height)
+            .scaleEffect(vm.status == .opened ? 1 : 0.05)
+            .offset(y: vm.status == .opened ? 0 : -vm.notchOpenedSize.height / 2)
+            .opacity(vm.status == .opened ? 1 : 0)
+            .allowsHitTesting(vm.status == .opened)
+            .zIndex(1)
         }
         .background(dragDetector)
         .animation(vm.animation, value: vm.status)
