@@ -46,35 +46,35 @@ struct NotchView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            notch
-                .zIndex(0)
-                .disabled(true)
-                .opacity(vm.notchVisible || nowPlaying.hasNowPlaying ? 1 : 0.3)
-            Group {
-                if vm.status == .opened {
-                    VStack(spacing: vm.spacing) {
-                        NotchHeaderView(vm: vm)
-                        NotchContentView(vm: vm)
-                            .frame(maxHeight: .infinity)
-                    }
-                    .padding(vm.spacing)
-                    .frame(width: vm.notchOpenedSize.width, height: vm.notchOpenedSize.height)
-                    .zIndex(1)
-                }
-            }
-            // Content grows out of the notch: top-anchored scale + fade, the same
-            // transition boring.notch uses for its open content.
-            .transition(
-                .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
-            )
+        notch
+            .opacity(vm.notchVisible || nowPlaying.hasNowPlaying ? 1 : 0.3)
+            .background(dragDetector)
+            .animation(vm.status == .opened ? vm.openAnimation : vm.closeAnimation, value: vm.status)
+            .preferredColorScheme(.dark)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+
+    /// The opened panel content. Lives INSIDE the masked notch surface, so the
+    /// springing shape clips and reveals it - the boring.notch mechanic that
+    /// makes open/close read as one surface growing and shrinking.
+    var openContent: some View {
+        VStack(spacing: vm.spacing) {
+            NotchHeaderView(vm: vm)
+            NotchContentView(vm: vm)
+                .frame(maxHeight: .infinity)
         }
-        .background(dragDetector)
-        .animation(vm.status == .opened ? vm.openAnimation : vm.closeAnimation, value: vm.status)
-        .preferredColorScheme(.dark)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(vm.spacing)
+        .frame(width: vm.notchOpenedSize.width, height: vm.notchOpenedSize.height)
+        // Keyed to status rather than part of the transition, so the blur rides
+        // the same spring as the shrinking shape and the content dissolves into
+        // the notch.
+        .blur(radius: vm.status == .opened ? 0 : 20)
+        .transition(
+            .scale(scale: 0.8, anchor: .top)
+                .combined(with: .move(edge: .top))
+                .combined(with: .opacity)
+                .animation(.smooth(duration: 0.35))
+        )
     }
 
     @ViewBuilder
@@ -103,23 +103,26 @@ struct NotchView: View {
     }
 
     var notch: some View {
-        notchFill
-            .mask(notchBackgroundMaskGroup)
-            .overlay {
-                if nowPlaying.hasNowPlaying && vm.status != .opened {
-                    notchMusicOverlay
-                }
+        ZStack(alignment: .top) {
+            notchFill
+            if nowPlaying.hasNowPlaying && vm.status != .opened {
+                notchMusicOverlay
             }
-            .frame(
-                width: notchSize.width + notchCornerRadius * 2,
-                height: notchSize.height
-            )
-            .shadow(
-                color: .black.opacity(([.opened, .popping].contains(vm.status)) ? 1 : 0),
-                radius: 16
-            )
-            .animation(vm.animation, value: nowPlaying.hasNowPlaying)
-            .animation(vm.animation, value: vm.glassStyle)
+            if vm.status == .opened {
+                openContent
+            }
+        }
+        .frame(
+            width: notchSize.width + notchCornerRadius * 2,
+            height: notchSize.height
+        )
+        .mask(notchBackgroundMaskGroup)
+        .shadow(
+            color: .black.opacity(([.opened, .popping].contains(vm.status)) ? 1 : 0),
+            radius: 16
+        )
+        .animation(vm.animation, value: nowPlaying.hasNowPlaying)
+        .animation(vm.animation, value: vm.glassStyle)
     }
 
     var notchMusicOverlay: some View {
